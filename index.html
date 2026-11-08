@@ -33,6 +33,32 @@
       opacity: 0;
       visibility: hidden;
     }
+    .image-dropzone {
+      border: 1px dashed #525252;
+      transition: border-color 180ms ease, background-color 180ms ease;
+    }
+    .image-dropzone.is-dragging {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .experience-card {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 500ms ease, transform 500ms ease;
+    }
+    .experience-card.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .experience-reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 600ms ease, transform 600ms ease;
+    }
+    .experience-reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
     }
@@ -91,7 +117,8 @@
       <div class="flex items-center space-x-8">
         <button onclick="showHome()" class="flex items-center space-x-3 text-left" aria-label="Go to home">
           <div class="w-10 h-10 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center overflow-hidden">
-            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <img id="brand-logo" class="hidden h-full w-full object-contain" alt="Steeze District crest">
+            <svg id="brand-logo-fallback" class="h-8 w-8 text-white" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M32 5 40 10 51 9 55 19 60 26 55 39 48 49 32 59 16 49 9 39 4 26 9 19 13 9 24 10 32 5Z"/><path d="M18 22h28l-3 17-11 9-11-9-3-17Z"/><path d="m22 18 3-7 7 5 7-5 3 7"/><text x="32" y="36" fill="currentColor" stroke="none" text-anchor="middle" font-size="13" font-weight="700">SD</text></svg>
           </div>
         </button>
 
@@ -215,6 +242,60 @@
         <!-- Rendered dynamically via JS -->
       </div>
     </section>
+
+    <section id="experience-section" class="border-t border-neutral-800 bg-neutral-950 py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="experience-reveal text-xs font-bold uppercase tracking-[0.2em] text-neutral-500">From the community</p>
+        <h2 class="experience-reveal mt-3 max-w-3xl text-3xl sm:text-5xl font-black uppercase">People's experience with Steeze District</h2>
+        <div id="experience-gallery" class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="product-detail-view" class="hidden flex-grow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <button onclick="closeProductDetail()" class="mb-8 inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-white transition-colors">
+        <span aria-hidden="true">←</span> Back to shop
+      </button>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        <div class="relative aspect-[4/3] bg-neutral-900 border border-neutral-800 overflow-hidden">
+          <img id="detail-product-image" class="h-full w-full object-cover" alt="">
+        </div>
+        <div class="flex flex-col">
+          <p id="detail-product-category" class="text-xs font-bold uppercase tracking-widest text-neutral-500"></p>
+          <h1 id="detail-product-name" class="mt-3 text-3xl sm:text-4xl font-black uppercase"></h1>
+          <p id="detail-product-price" class="mt-3 text-lg text-neutral-300"></p>
+          <div class="my-7 border-t border-neutral-800"></div>
+          <div>
+            <h2 class="mb-3 text-sm font-bold uppercase">Size</h2>
+            <div id="detail-size-options" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <div class="flex h-12 items-center border border-neutral-700">
+              <button onclick="changeDetailQuantity(-1)" class="h-full w-12 text-neutral-400 hover:text-white" aria-label="Decrease quantity">−</button>
+              <span id="detail-quantity" class="w-8 text-center text-sm">1</span>
+              <button onclick="changeDetailQuantity(1)" class="h-full w-12 text-neutral-400 hover:text-white" aria-label="Increase quantity">+</button>
+            </div>
+            <button id="detail-add-to-cart" onclick="addDetailToCart()" class="h-12 flex-1 bg-white px-6 text-sm font-bold uppercase text-black hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">Add to cart</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="mt-16 border-t border-neutral-800 pt-10">
+        <h2 class="text-2xl font-black uppercase">Customer comments</h2>
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-10">
+          <div id="product-comments" class="space-y-4"></div>
+          <form id="product-comment-form" onsubmit="submitProductComment(event)" class="h-fit border border-neutral-800 bg-neutral-900 p-5 space-y-3">
+            <h3 class="font-bold uppercase text-sm">Leave a comment</h3>
+            <p id="comment-identity-label" class="hidden text-xs text-neutral-500"></p>
+            <textarea id="comment-text" required maxlength="600" rows="4" placeholder="Your comment" class="w-full resize-y bg-neutral-950 border border-neutral-700 p-3 text-sm focus:outline-none focus:border-white"></textarea>
+            <p id="comment-error" class="hidden text-xs text-red-400" role="alert"></p>
+            <button type="submit" class="w-full bg-white py-3 text-xs font-bold uppercase text-black hover:bg-neutral-200 transition-colors">Post comment</button>
+            <button id="change-comment-profile" type="button" onclick="openCustomerProfile()" class="hidden text-xs text-neutral-500 underline hover:text-white">Change commenter</button>
+          </form>
+        </div>
+      </section>
+    </div>
   </main>
 
   <!-- ADMIN DASHBOARD VIEW (Alt Site Mode) -->
@@ -295,10 +376,11 @@
       </section>
     </section>
 
-    <div id="admin-management-panel" role="tabpanel" aria-labelledby="admin-management-tab" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div id="admin-management-panel" role="tabpanel" aria-labelledby="admin-management-tab" class="hidden grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-8">
       
       <!-- Add New Product Form -->
-      <div class="bg-neutral-900 border border-neutral-800 p-6 rounded-xl self-start">
+      <div class="space-y-6 self-start">
+      <div class="bg-neutral-900 border border-neutral-800 p-6 rounded-xl">
         <h2 class="text-lg font-bold uppercase mb-4 flex items-center gap-2">
           <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           Add New Garment
@@ -334,8 +416,17 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-neutral-400 uppercase mb-1">Image URL</label>
-            <input type="url" id="admin-image" required placeholder="https://..." class="w-full bg-neutral-800 border border-neutral-700 rounded p-2.5 text-sm text-white focus:outline-none focus:border-white">
+            <label class="block text-xs font-bold text-neutral-400 uppercase mb-2">Available sizes</label>
+            <div id="new-product-size-editor" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div id="product-image-dropzone" class="image-dropzone space-y-3 p-4 text-center" ondragover="handleImageDragOver(event)" ondragleave="handleImageDragLeave(event)" ondrop="handleImageDrop(event, 'product')">
+            <p class="text-xs text-neutral-400">Drop a product image here</p>
+            <input id="admin-image-file" type="file" accept="image/*" class="sr-only" onchange="handleImageFile(event, 'product')">
+            <button type="button" onclick="document.getElementById('admin-image-file').click()" class="border border-neutral-700 px-4 py-2 text-xs font-bold uppercase hover:border-white">Choose image</button>
+            <img id="admin-image-preview" class="hidden mx-auto max-h-36 max-w-full object-contain" alt="Product image preview">
+            <label class="block text-left text-[10px] uppercase text-neutral-500" for="admin-image">Or use an image URL</label>
+            <input type="url" id="admin-image" placeholder="https://..." class="w-full bg-neutral-800 border border-neutral-700 rounded p-2.5 text-sm text-white focus:outline-none focus:border-white">
           </div>
 
           <button type="submit" class="w-full bg-white text-black font-bold uppercase py-3 rounded text-xs tracking-wider hover:bg-neutral-200 transition-colors">
@@ -344,8 +435,33 @@
         </form>
       </div>
 
+      <div class="border border-neutral-800 bg-neutral-900 p-6 space-y-5">
+        <h2 class="font-bold uppercase text-sm">Brand & banner</h2>
+        <div id="logo-image-dropzone" class="image-dropzone p-4 text-center" ondragover="handleImageDragOver(event)" ondragleave="handleImageDragLeave(event)" ondrop="handleImageDrop(event, 'logo')">
+          <p class="mb-3 text-xs text-neutral-400">Drop your crest logo here</p>
+          <input id="logo-image-file" type="file" accept="image/*" class="sr-only" onchange="handleImageFile(event, 'logo')">
+          <button type="button" onclick="document.getElementById('logo-image-file').click()" class="border border-neutral-700 px-4 py-2 text-xs font-bold uppercase hover:border-white">Choose logo</button>
+        </div>
+        <div id="banner-image-dropzone" class="image-dropzone p-4 text-center" ondragover="handleImageDragOver(event)" ondragleave="handleImageDragLeave(event)" ondrop="handleImageDrop(event, 'banner')">
+          <p class="mb-3 text-xs text-neutral-400">Drop a new hero banner image here</p>
+          <input id="banner-image-file" type="file" accept="image/*" class="sr-only" onchange="handleImageFile(event, 'banner')">
+          <button type="button" onclick="document.getElementById('banner-image-file').click()" class="border border-neutral-700 px-4 py-2 text-xs font-bold uppercase hover:border-white">Choose banner</button>
+        </div>
+        <form id="experience-image-form" onsubmit="addExperienceImage(event)" class="border-t border-neutral-800 pt-5 space-y-3">
+          <h3 class="text-xs font-bold uppercase">Community gallery photos</h3>
+          <div id="experience-image-dropzone" class="image-dropzone p-4 text-center" ondragover="handleImageDragOver(event)" ondragleave="handleImageDragLeave(event)" ondrop="handleImageDrop(event, 'experience')">
+            <p class="mb-3 text-xs text-neutral-400">Drop a community photo here</p>
+            <input id="experience-image-file" type="file" accept="image/*" class="sr-only" onchange="handleImageFile(event, 'experience')">
+            <button type="button" onclick="document.getElementById('experience-image-file').click()" class="border border-neutral-700 px-4 py-2 text-xs font-bold uppercase hover:border-white">Choose photo</button>
+          </div>
+          <input id="experience-caption" maxlength="100" placeholder="Caption (optional)" class="w-full bg-neutral-800 border border-neutral-700 p-2.5 text-sm focus:outline-none focus:border-white">
+          <button type="submit" class="w-full bg-white py-3 text-xs font-bold uppercase text-black hover:bg-neutral-200">Add to gallery</button>
+        </form>
+      </div>
+      </div>
+
       <!-- Inventory Management & Customer Inbox -->
-      <div class="lg:col-span-2 space-y-6">
+      <div class="space-y-6">
         
         <!-- Inventory Table -->
         <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
@@ -361,6 +477,7 @@
                   <th class="p-3.5">Product</th>
                   <th class="p-3.5">Price</th>
                   <th class="p-3.5">Stock Left</th>
+                  <th class="p-3.5">Sizes</th>
                   <th class="p-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -380,6 +497,11 @@
           <div id="admin-inbox-list" class="space-y-3 max-h-56 overflow-y-auto custom-scrollbar text-xs">
             <!-- Rendered dynamically -->
           </div>
+        </div>
+
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <h3 class="font-bold uppercase text-sm mb-3">Customer Product Comments</h3>
+          <div id="admin-product-comments" class="space-y-3 max-h-72 overflow-y-auto custom-scrollbar text-xs"></div>
         </div>
 
         <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
@@ -445,6 +567,24 @@
       <p id="admin-login-error" class="hidden text-xs text-red-400" role="alert">Please enter a valid email address.</p>
       <p id="admin-login-status" class="hidden text-xs text-emerald-400" role="status">Email saved.</p>
       <button type="submit" class="w-full bg-white text-black font-extrabold uppercase py-3 tracking-wider text-xs hover:bg-neutral-200 transition-colors">Continue</button>
+    </form>
+  </dialog>
+
+  <dialog id="customer-profile-modal" class="bg-neutral-950 text-white border border-neutral-800 p-6 w-[calc(100%-2rem)] max-w-sm">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold uppercase tracking-wide">Comment profile</h3>
+      <button type="button" onclick="closeModal('customer-profile-modal')" class="p-2 text-neutral-400 hover:text-white" aria-label="Close">✕</button>
+    </div>
+    <form id="customer-profile-form" onsubmit="saveCustomerProfile(event)" class="space-y-4">
+      <p class="text-xs text-neutral-400">Set your display name and email once. Your password is checked but never saved.</p>
+      <label class="sr-only" for="customer-profile-username">Username</label>
+      <input id="customer-profile-username" required maxlength="60" autocomplete="nickname" placeholder="Username" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm focus:outline-none focus:border-white">
+      <label class="sr-only" for="customer-profile-email">Email address</label>
+      <input id="customer-profile-email" required type="email" autocomplete="email" placeholder="Email address" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm focus:outline-none focus:border-white">
+      <label class="sr-only" for="customer-profile-password">Password</label>
+      <input id="customer-profile-password" required type="password" minlength="6" autocomplete="new-password" placeholder="Password (6+ characters)" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm focus:outline-none focus:border-white">
+      <p id="customer-profile-error" class="hidden text-xs text-red-400" role="alert"></p>
+      <button type="submit" class="w-full bg-white py-3 text-xs font-bold uppercase text-black hover:bg-neutral-200">Save profile & post</button>
     </form>
   </dialog>
 
@@ -556,23 +696,44 @@
     let salesHistory = [];
     let contactMessages = [];
     let emailSignups = [];
+    let productComments = [];
+    let experienceImages = [];
+    let siteSettings = { heroImage: '', logoImage: '' };
+    let customerProfile = null;
+    let newProductSizes = [];
+    let pendingCommentText = '';
+    let isEditingCustomerProfile = false;
     let totalRevenue = 0;
     let currentView = 'store';
     let currentCategory = 'all';
     let currentSort = 'featured';
+    let activeProductId = null;
+    let selectedDetailSize = '';
+    let detailQuantity = 1;
+    let pendingProductImage = '';
+    let pendingExperienceImage = '';
 
     const syncChannel = new BroadcastChannel('steeze_district_sync');
 
     window.addEventListener('DOMContentLoaded', () => {
       loadState();
+      applySiteSettings();
+      document.getElementById('admin-category').addEventListener('change', handleProductCategoryChange);
       renderStorefront();
+      renderExperienceGallery();
       renderAdminDashboard();
+      renderNewProductSizeEditor();
+      updateCommentIdentityLabel();
       updateCartUI();
+      observeExperienceHeading();
 
       // Secret Admin Hotkey Ctrl + Shift + S
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !document.getElementById('cart-drawer').classList.contains('pointer-events-none')) {
           toggleCart();
+        }
+        if (e.key === 'Escape' && currentView === 'product') {
+          closeProductDetail();
         }
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') {
           e.preventDefault();
@@ -583,9 +744,12 @@
       syncChannel.onmessage = (event) => {
         if (event.data.type === 'STATE_UPDATED') {
           loadState();
+          applySiteSettings();
           renderStorefront();
+          renderExperienceGallery();
           renderAdminDashboard();
           updateCartUI();
+          if (currentView === 'product') renderProductDetail();
         }
       };
     });
@@ -595,6 +759,10 @@
       localStorage.setItem('sd_sales', JSON.stringify(salesHistory));
       localStorage.setItem('sd_messages', JSON.stringify(contactMessages));
       localStorage.setItem('sd_email_signups', JSON.stringify(emailSignups));
+      localStorage.setItem('sd_product_comments', JSON.stringify(productComments));
+      localStorage.setItem('sd_experience_images', JSON.stringify(experienceImages));
+      localStorage.setItem('sd_site_settings', JSON.stringify(siteSettings));
+      if (customerProfile) localStorage.setItem('sd_customer_profile', JSON.stringify(customerProfile));
       localStorage.setItem('sd_revenue', totalRevenue.toString());
       syncChannel.postMessage({ type: 'STATE_UPDATED' });
     }
@@ -623,6 +791,18 @@
 
       const storedEmails = localStorage.getItem('sd_email_signups');
       emailSignups = storedEmails ? JSON.parse(storedEmails) : [];
+
+      const storedComments = localStorage.getItem('sd_product_comments');
+      productComments = storedComments ? JSON.parse(storedComments) : [];
+
+      const storedExperiences = localStorage.getItem('sd_experience_images');
+      experienceImages = storedExperiences ? JSON.parse(storedExperiences) : [];
+
+      const storedCustomerProfile = localStorage.getItem('sd_customer_profile');
+      customerProfile = storedCustomerProfile ? JSON.parse(storedCustomerProfile) : null;
+
+      const storedSettings = localStorage.getItem('sd_site_settings');
+      siteSettings = storedSettings ? { ...siteSettings, ...JSON.parse(storedSettings) } : { heroImage: '', logoImage: '' };
 
       const storedRev = localStorage.getItem('sd_revenue');
       totalRevenue = storedRev ? parseFloat(storedRev) : 0;
@@ -673,6 +853,7 @@
       currentView = view;
       document.getElementById('storefront-view').classList.toggle('hidden', view !== 'store');
       document.getElementById('admin-view').classList.toggle('hidden', view !== 'admin');
+      document.getElementById('product-detail-view').classList.add('hidden');
 
       if (view === 'admin') {
         renderAdminDashboard();
@@ -681,6 +862,324 @@
         renderStorefront();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
+    }
+
+    function getProductSizes(product) {
+      if (Array.isArray(product.sizes)) return product.sizes;
+      return defaultSizesForCategory(product.category);
+    }
+
+    function defaultSizesForCategory(category) {
+      const defaults = {
+        Shirts: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+        Pants: ['28', '30', '32', '34', '36', '38'],
+        Shoes: ['UK5', 'UK6', 'UK7', 'UK8', 'UK9', 'UK10', 'UK11'],
+        Socks: ['S/M', 'M/L', 'L/XL'],
+        Accessories: ['One Size'],
+        'Combo Fits': ['S', 'M', 'L', 'XL']
+      };
+      return [...(defaults[category] || ['One Size'])];
+    }
+
+    function renderSizeEditor(container, sizes, onChange) {
+      container.replaceChildren();
+      const entries = sizes.length > 0 ? sizes : [''];
+      entries.forEach((size, index) => {
+        const field = document.createElement('div');
+        field.className = 'flex items-center gap-1';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = size;
+        input.maxLength = 16;
+        input.placeholder = 'Size';
+        input.setAttribute('aria-label', `Size ${index + 1}`);
+        input.className = 'w-16 border border-neutral-700 bg-neutral-950 px-2 py-2 text-center text-xs text-white focus:outline-none focus:border-white';
+        input.addEventListener('change', () => {
+          onChange([...container.querySelectorAll('input')].map(item => item.value.trim()));
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'h-8 w-8 border border-neutral-800 text-neutral-400 hover:border-red-400 hover:text-red-400';
+        remove.setAttribute('aria-label', `Remove size ${index + 1}`);
+        remove.textContent = '−';
+        remove.addEventListener('click', () => {
+          const next = [...container.querySelectorAll('input')].map(item => item.value.trim());
+          next.splice(index, 1);
+          onChange(next);
+          renderSizeEditor(container, next, onChange);
+        });
+        field.append(input, remove);
+        container.appendChild(field);
+      });
+
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'h-8 w-8 border border-neutral-700 text-white hover:bg-white hover:text-black';
+      add.setAttribute('aria-label', 'Add size');
+      add.textContent = '+';
+      add.addEventListener('click', () => {
+        const next = [...container.querySelectorAll('input')].map(item => item.value.trim());
+        next.push('');
+        onChange(next);
+        renderSizeEditor(container, next, onChange);
+        container.querySelectorAll('input')[next.length - 1]?.focus();
+      });
+      container.appendChild(add);
+    }
+
+    function renderNewProductSizeEditor() {
+      const category = document.getElementById('admin-category').value;
+      if (newProductSizes.length === 0) newProductSizes = defaultSizesForCategory(category);
+      renderSizeEditor(document.getElementById('new-product-size-editor'), newProductSizes, sizes => {
+        newProductSizes = sizes;
+      });
+    }
+
+    function updateCommentIdentityLabel() {
+      const label = document.getElementById('comment-identity-label');
+      const changeButton = document.getElementById('change-comment-profile');
+      if (customerProfile) {
+        label.textContent = `Posting as ${customerProfile.username}`;
+        label.classList.remove('hidden');
+        changeButton.classList.remove('hidden');
+      } else {
+        label.classList.add('hidden');
+        changeButton.classList.add('hidden');
+      }
+    }
+
+    function openCustomerProfile() {
+      isEditingCustomerProfile = Boolean(customerProfile);
+      document.getElementById('customer-profile-username').value = customerProfile?.username || '';
+      document.getElementById('customer-profile-email').value = customerProfile?.email || '';
+      document.getElementById('customer-profile-password').value = '';
+      document.getElementById('customer-profile-error').classList.add('hidden');
+      document.getElementById('customer-profile-modal').showModal();
+    }
+
+    function createCustomerId() {
+      return window.crypto?.randomUUID ? window.crypto.randomUUID() : `customer_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    }
+
+    function saveCustomerProfile(event) {
+      event.preventDefault();
+      const username = document.getElementById('customer-profile-username').value.trim();
+      const email = document.getElementById('customer-profile-email').value.trim();
+      const password = document.getElementById('customer-profile-password').value;
+      const error = document.getElementById('customer-profile-error');
+      error.classList.add('hidden');
+
+      if (!username || !email || password.length < 6) {
+        error.textContent = 'Enter a username, valid email, and password with at least 6 characters.';
+        error.classList.remove('hidden');
+        return;
+      }
+
+      customerProfile = {
+        id: isEditingCustomerProfile && customerProfile ? customerProfile.id : createCustomerId(),
+        username,
+        email
+      };
+      saveState();
+      updateCommentIdentityLabel();
+      closeModal('customer-profile-modal');
+      document.getElementById('customer-profile-form').reset();
+      isEditingCustomerProfile = false;
+      if (pendingCommentText) {
+        const text = pendingCommentText;
+        pendingCommentText = '';
+        publishProductComment(text);
+      }
+    }
+
+    function publishProductComment(text) {
+      const product = products.find(item => item.id === activeProductId);
+      if (!product || !customerProfile) return;
+      productComments.unshift({
+        id: `c_${Date.now()}`,
+        productId: product.id,
+        productName: product.name,
+        ownerId: customerProfile.id,
+        username: customerProfile.username,
+        email: customerProfile.email,
+        text,
+        date: new Date().toLocaleDateString()
+      });
+      saveState();
+      renderProductComments(product.id);
+      renderAdminDashboard();
+      document.getElementById('product-comment-form').reset();
+      updateCommentIdentityLabel();
+    }
+
+    function deleteProductComment(commentId, adminAction = false) {
+      const comment = productComments.find(item => item.id === commentId);
+      const ownsComment = comment && customerProfile && comment.ownerId === customerProfile.id;
+      if (!comment || (!ownsComment && !(adminAction && currentView === 'admin'))) return;
+      if (!confirm('Delete this comment?')) return;
+      productComments = productComments.filter(item => item.id !== commentId);
+      saveState();
+      if (activeProductId) renderProductComments(activeProductId);
+      renderAdminDashboard();
+    }
+
+    function openProductDetail(productId) {
+      activeProductId = productId;
+      selectedDetailSize = '';
+      detailQuantity = 1;
+      currentView = 'product';
+      document.getElementById('storefront-view').classList.add('hidden');
+      document.getElementById('admin-view').classList.add('hidden');
+      document.getElementById('product-detail-view').classList.remove('hidden');
+      renderProductDetail();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeProductDetail() {
+      activeProductId = null;
+      switchView('store');
+    }
+
+    function renderProductDetail() {
+      const product = products.find(item => item.id === activeProductId);
+      if (!product) {
+        closeProductDetail();
+        return;
+      }
+
+      document.getElementById('detail-product-image').src = product.image;
+      document.getElementById('detail-product-image').alt = product.name;
+      document.getElementById('detail-product-name').textContent = product.name;
+      document.getElementById('detail-product-category').textContent = product.category || 'Garment';
+      document.getElementById('detail-product-price').textContent = `R ${product.price.toFixed(2)}`;
+      document.getElementById('detail-quantity').textContent = detailQuantity;
+
+      const sizeOptions = document.getElementById('detail-size-options');
+      sizeOptions.replaceChildren();
+      const availableSizes = getProductSizes(product);
+      const addButton = document.getElementById('detail-add-to-cart');
+      addButton.disabled = availableSizes.length === 0;
+      if (availableSizes.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.className = 'text-sm text-neutral-500';
+        emptyState.textContent = 'No sizes are currently available.';
+        sizeOptions.appendChild(emptyState);
+      }
+      availableSizes.forEach(size => {
+        const button = document.createElement('button');
+        const isSelected = size === selectedDetailSize;
+        button.type = 'button';
+        button.className = `min-w-16 border px-4 py-3 text-sm transition-colors ${isSelected ? 'border-white bg-white text-black' : 'border-neutral-700 text-neutral-300 hover:border-white'}`;
+        button.textContent = size;
+        button.setAttribute('aria-pressed', String(isSelected));
+        button.addEventListener('click', () => {
+          selectedDetailSize = size;
+          renderProductDetail();
+        });
+        sizeOptions.appendChild(button);
+      });
+      renderProductComments(product.id);
+    }
+
+    function changeDetailQuantity(delta) {
+      const product = products.find(item => item.id === activeProductId);
+      if (!product) return;
+      detailQuantity = Math.max(1, Math.min(product.stock, detailQuantity + delta));
+      document.getElementById('detail-quantity').textContent = detailQuantity;
+    }
+
+    function addDetailToCart() {
+      const product = products.find(item => item.id === activeProductId);
+      if (!product) return;
+      if (!selectedDetailSize) {
+        alert('Please select a size first.');
+        return;
+      }
+      const cartKey = `${product.id}::${selectedDetailSize}`;
+      const currentQty = cart.get(cartKey) || 0;
+      if (currentQty + detailQuantity > product.stock) {
+        alert(`Only ${product.stock} items in stock!`);
+        return;
+      }
+      cart.set(cartKey, currentQty + detailQuantity);
+      updateCartUI();
+      switchView('store');
+      toggleCart(true);
+    }
+
+    function renderProductComments(productId) {
+      const container = document.getElementById('product-comments');
+      container.replaceChildren();
+      const comments = productComments.filter(comment => comment.productId === productId);
+      if (comments.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.className = 'text-sm text-neutral-500';
+        emptyState.textContent = 'No comments yet.';
+        container.appendChild(emptyState);
+        return;
+      }
+      comments.forEach(comment => {
+        const article = document.createElement('article');
+        article.className = 'border-b border-neutral-800 pb-4';
+        const heading = document.createElement('div');
+        heading.className = 'flex items-center justify-between gap-3';
+        const username = document.createElement('h3');
+        username.className = 'text-sm font-bold';
+        username.textContent = comment.username;
+        const date = document.createElement('time');
+        date.className = 'text-xs text-neutral-500';
+        date.textContent = comment.date;
+        heading.append(username, date);
+        const body = document.createElement('p');
+        body.className = 'mt-2 whitespace-pre-wrap text-sm text-neutral-300';
+        body.textContent = comment.text;
+        article.append(heading, body);
+        if (customerProfile && comment.ownerId === customerProfile.id) {
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'mt-2 text-xs font-bold uppercase text-red-400 hover:text-red-300';
+          remove.textContent = 'Delete my comment';
+          remove.addEventListener('click', () => deleteProductComment(comment.id));
+          article.appendChild(remove);
+        }
+        container.appendChild(article);
+      });
+    }
+
+    function submitProductComment(event) {
+      event.preventDefault();
+      const text = document.getElementById('comment-text').value.trim();
+      const error = document.getElementById('comment-error');
+      error.classList.add('hidden');
+      if (!products.some(item => item.id === activeProductId) || !text) return;
+      if (!customerProfile) {
+        pendingCommentText = text;
+        openCustomerProfile();
+        return;
+      }
+      publishProductComment(text);
+    }
+
+    function handleProductCategoryChange() {
+      newProductSizes = defaultSizesForCategory(document.getElementById('admin-category').value);
+      renderNewProductSizeEditor();
+    }
+
+    function observeExperienceHeading() {
+      const elements = document.querySelectorAll('.experience-reveal');
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+        elements.forEach(element => element.classList.add('is-visible'));
+        return;
+      }
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+      elements.forEach(element => observer.observe(element));
     }
 
     function showHome() {
@@ -744,8 +1243,20 @@
         const isLowStock = p.stock > 0 && p.stock <= 3;
 
         const card = document.createElement('div');
-        card.className = 'product-card group flex flex-col justify-between';
+        card.className = 'product-card group flex cursor-pointer flex-col justify-between';
+        card.tabIndex = 0;
+        card.setAttribute('role', 'link');
+        card.setAttribute('aria-label', `View ${p.name}`);
         card.style.animationDelay = `${Math.min(grid.children.length, 7) * 55}ms`;
+        card.addEventListener('click', event => {
+          if (!event.target.closest('button, a')) openProductDetail(p.id);
+        });
+        card.addEventListener('keydown', event => {
+          if ((event.key === 'Enter' || event.key === ' ') && !event.target.closest('button, a')) {
+            event.preventDefault();
+            openProductDetail(p.id);
+          }
+        });
         
         card.innerHTML = `
           <div>
@@ -764,32 +1275,38 @@
             ${p.imageCredit ? `<p class="mt-1 text-[10px] text-neutral-500">Image: <a href="${p.imageSource}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">${p.imageCredit}</a>${p.imageLicense ? ` · <a href="${p.imageLicense}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">CC BY-SA 3.0</a>` : ''}</p>` : ''}
           </div>
 
-          <button onclick="addToCart('${p.id}')" ${isSoldOut ? 'disabled' : ''} class="mt-4 w-full border border-white/20 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white hover:text-black transition-all disabled:opacity-20 disabled:cursor-not-allowed">
-            ${isSoldOut ? 'Sold Out' : 'Add to Cart'}
+          <button ${isSoldOut ? 'disabled' : ''} class="mt-4 w-full border border-white/20 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white hover:text-black transition-all disabled:opacity-20 disabled:cursor-not-allowed">
+            ${isSoldOut ? 'Sold Out' : 'Select Size'}
           </button>
         `;
+        card.querySelector('button').addEventListener('click', event => {
+          event.stopPropagation();
+          openProductDetail(p.id);
+        });
         grid.appendChild(card);
       });
     }
 
-    function addToCart(productId) {
+    function addToCart(productId, size = '') {
       const product = products.find(p => p.id === productId);
       if (!product || product.stock <= 0) return;
 
-      const currentQty = cart.get(productId) || 0;
+      const cartKey = `${productId}::${size}`;
+      const currentQty = cart.get(cartKey) || 0;
       if (currentQty + 1 > product.stock) {
         alert(`Cannot add more. Only ${product.stock} items remaining in stock!`);
         return;
       }
 
-      cart.set(productId, currentQty + 1);
+      cart.set(cartKey, currentQty + 1);
       updateCartUI();
       toggleCart(true);
     }
 
-    function updateCartQty(productId, delta) {
+    function updateCartQty(cartKey, delta) {
+      const [productId] = cartKey.split('::');
       const product = products.find(p => p.id === productId);
-      const currentQty = cart.get(productId) || 0;
+      const currentQty = cart.get(cartKey) || 0;
       const newQty = currentQty + delta;
 
       if (newQty > product.stock) {
@@ -798,9 +1315,9 @@
       }
 
       if (newQty <= 0) {
-        cart.delete(productId);
+        cart.delete(cartKey);
       } else {
-        cart.set(productId, newQty);
+        cart.set(cartKey, newQty);
       }
       updateCartUI();
     }
@@ -825,7 +1342,8 @@
         checkoutBtn.disabled = true;
       } else {
         checkoutBtn.disabled = false;
-        cart.forEach((qty, id) => {
+        cart.forEach((qty, cartKey) => {
+          const [id, size] = cartKey.split('::');
           const product = products.find(p => p.id === id);
           if (!product) return;
 
@@ -838,12 +1356,12 @@
             <img src="${product.image}" alt="${product.name}" class="w-16 h-16 object-cover rounded bg-neutral-900 border border-neutral-800">
             <div class="flex-grow">
               <h4 class="text-xs font-bold text-white uppercase">${product.name}</h4>
-              <p class="text-xs text-neutral-400 mt-1">R ${product.price.toFixed(2)}</p>
+              <p class="text-xs text-neutral-400 mt-1">R ${product.price.toFixed(2)}${size ? ` · ${size}` : ''}</p>
             </div>
             <div class="flex items-center space-x-2 border border-neutral-800 rounded p-1">
-              <button onclick="updateCartQty('${id}', -1)" class="w-5 h-5 text-neutral-400 hover:text-white">-</button>
+              <button onclick="updateCartQty('${cartKey}', -1)" class="w-5 h-5 text-neutral-400 hover:text-white">-</button>
               <span class="text-xs font-bold w-4 text-center">${qty}</span>
-              <button onclick="updateCartQty('${id}', 1)" class="w-5 h-5 text-neutral-400 hover:text-white">+</button>
+              <button onclick="updateCartQty('${cartKey}', 1)" class="w-5 h-5 text-neutral-400 hover:text-white">+</button>
             </div>
           `;
           container.appendChild(itemEl);
@@ -1098,11 +1616,17 @@
               ${p.stock === 0 ? '<span class="text-[10px] text-neutral-500 font-bold">OUT</span>' : ''}
             </div>
           </td>
+          <td class="p-3.5"><div id="size-editor-${p.id}" class="flex min-w-40 flex-wrap items-center gap-1.5"></div></td>
           <td class="p-3.5 text-right">
             <button onclick="removeProduct('${p.id}')" class="text-red-400 hover:text-red-300 text-xs font-bold uppercase">Delete</button>
           </td>
         `;
         list.appendChild(tr);
+        renderSizeEditor(document.getElementById(`size-editor-${p.id}`), getProductSizes(p), sizes => {
+          p.sizes = sizes;
+          saveState();
+          if (currentView === 'product' && activeProductId === p.id) renderProductDetail();
+        });
       });
 
       // Inbox List
@@ -1123,6 +1647,36 @@
             <p class="text-neutral-300 mt-1">${m.comment}</p>
           `;
           inboxList.appendChild(div);
+        });
+      }
+
+      const reviewList = document.getElementById('admin-product-comments');
+      reviewList.replaceChildren();
+      if (productComments.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.className = 'text-neutral-500';
+        emptyState.textContent = 'No customer comments yet.';
+        reviewList.appendChild(emptyState);
+      } else {
+        productComments.forEach(comment => {
+          const item = document.createElement('article');
+          item.className = 'border-b border-neutral-800 pb-3';
+          const heading = document.createElement('p');
+          heading.className = 'font-bold text-white';
+          heading.textContent = `${comment.username} · ${comment.email} · ${comment.productName}`;
+          const body = document.createElement('p');
+          body.className = 'mt-1 whitespace-pre-wrap text-neutral-300';
+          body.textContent = comment.text;
+          const date = document.createElement('p');
+          date.className = 'mt-1 text-[10px] text-neutral-500';
+          date.textContent = comment.date;
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'mt-2 text-[10px] font-bold uppercase text-red-400 hover:text-red-300';
+          remove.textContent = 'Delete comment';
+          remove.addEventListener('click', () => deleteProductComment(comment.id, true));
+          item.append(heading, body, date, remove);
+          reviewList.appendChild(item);
         });
       }
 
@@ -1186,7 +1740,8 @@
       const category = document.getElementById('admin-category').value;
       const price = parseFloat(document.getElementById('admin-price').value);
       const stock = parseInt(document.getElementById('admin-stock').value, 10);
-      const image = document.getElementById('admin-image').value.trim();
+      const image = pendingProductImage || document.getElementById('admin-image').value.trim();
+      const sizes = [...new Set(newProductSizes.map(size => size.trim()).filter(Boolean))];
 
       if (!name || isNaN(price) || isNaN(stock) || !image) return;
 
@@ -1196,7 +1751,8 @@
         category,
         price,
         stock,
-        image
+        image,
+        sizes: sizes.length > 0 ? sizes : defaultSizesForCategory(category)
       };
 
       products.unshift(newProduct);
@@ -1205,6 +1761,11 @@
       renderStorefront();
 
       document.getElementById('add-product-form').reset();
+      pendingProductImage = '';
+      document.getElementById('admin-image-preview').classList.add('hidden');
+      const categorySelect = document.getElementById('admin-category');
+      newProductSizes = defaultSizesForCategory(categorySelect.value);
+      renderNewProductSizeEditor();
       alert(`Published ${name} in ${category} with ${stock} items in stock!`);
     }
 
@@ -1224,7 +1785,10 @@
     function removeProduct(id) {
       if (!confirm('Are you sure you want to remove this garment from catalog?')) return;
       products = products.filter(p => p.id !== id);
-      cart.delete(id);
+      productComments = productComments.filter(comment => comment.productId !== id);
+      for (const cartKey of cart.keys()) {
+        if (cartKey.split('::')[0] === id) cart.delete(cartKey);
+      }
       saveState();
       renderStorefront();
       renderAdminDashboard();
@@ -1246,6 +1810,163 @@
     function closeModal(id) {
       document.getElementById(id).close();
     }
+
+    function applySiteSettings() {
+      const hero = document.getElementById('store-hero');
+      const logo = document.getElementById('brand-logo');
+      const logoFallback = document.getElementById('brand-logo-fallback');
+      if (siteSettings.heroImage) {
+        hero.style.backgroundImage = `linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(13,13,13,0.95) 100%), url("${siteSettings.heroImage}")`;
+      }
+      if (siteSettings.logoImage) {
+        logo.src = siteSettings.logoImage;
+        logo.classList.remove('hidden');
+        logoFallback.classList.add('hidden');
+      } else {
+        logo.classList.add('hidden');
+        logoFallback.classList.remove('hidden');
+      }
+    }
+
+    function compressImageFile(file) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith('image/')) {
+          reject(new Error('Choose a valid image file.'));
+          return;
+        }
+        if (file.size > 12000000) {
+          reject(new Error('Choose an image smaller than 12 MB.'));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Could not read that image.'));
+        reader.onload = () => {
+          const image = new Image();
+          image.onerror = () => reject(new Error('That image could not be opened.'));
+          image.onload = () => {
+            const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(image.naturalWidth * scale);
+            canvas.height = Math.round(image.naturalHeight * scale);
+            canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/webp', 0.78));
+          };
+          image.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function setUploadedImage(file, target) {
+      try {
+        const image = await compressImageFile(file);
+        if (target === 'product') {
+          pendingProductImage = image;
+          const preview = document.getElementById('admin-image-preview');
+          preview.src = image;
+          preview.classList.remove('hidden');
+          document.getElementById('admin-image').value = '';
+        } else if (target === 'banner') {
+          siteSettings.heroImage = image;
+          applySiteSettings();
+          saveState();
+        } else if (target === 'logo') {
+          siteSettings.logoImage = image;
+          applySiteSettings();
+          saveState();
+        } else if (target === 'experience') {
+          pendingExperienceImage = image;
+          document.querySelector('#experience-image-dropzone p').textContent = 'Photo selected';
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    function handleImageFile(event, target) {
+      const file = event.target.files?.[0];
+      if (file) setUploadedImage(file, target);
+      event.target.value = '';
+    }
+
+    function handleImageDragOver(event) {
+      event.preventDefault();
+      event.currentTarget.classList.add('is-dragging');
+    }
+
+    function handleImageDragLeave(event) {
+      if (!event.currentTarget.contains(event.relatedTarget)) {
+        event.currentTarget.classList.remove('is-dragging');
+      }
+    }
+
+    function handleImageDrop(event, target) {
+      event.preventDefault();
+      event.currentTarget.classList.remove('is-dragging');
+      const file = event.dataTransfer.files?.[0];
+      if (file) setUploadedImage(file, target);
+    }
+
+    function addExperienceImage(event) {
+      event.preventDefault();
+      if (!pendingExperienceImage) {
+        alert('Choose or drop a gallery photo first.');
+        return;
+      }
+      experienceImages.unshift({
+        id: `e_${Date.now()}`,
+        image: pendingExperienceImage,
+        caption: document.getElementById('experience-caption').value.trim()
+      });
+      pendingExperienceImage = '';
+      saveState();
+      renderExperienceGallery();
+      event.currentTarget.reset();
+      document.querySelector('#experience-image-dropzone p').textContent = 'Drop a community photo here';
+    }
+
+    function renderExperienceGallery() {
+      const gallery = document.getElementById('experience-gallery');
+      gallery.replaceChildren();
+      if (experienceImages.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.className = 'text-sm text-neutral-500';
+        emptyState.textContent = 'Community photos will appear here.';
+        gallery.appendChild(emptyState);
+        return;
+      }
+      experienceImages.forEach((item, index) => {
+        const figure = document.createElement('figure');
+        figure.className = 'experience-card overflow-hidden bg-neutral-900';
+        figure.style.transitionDelay = `${Math.min(index, 5) * 80}ms`;
+        const image = document.createElement('img');
+        image.src = item.image;
+        image.alt = item.caption || 'Steeze District customer experience';
+        image.className = 'aspect-[4/5] w-full object-cover';
+        figure.appendChild(image);
+        if (item.caption) {
+          const caption = document.createElement('figcaption');
+          caption.className = 'p-4 text-sm text-neutral-300';
+          caption.textContent = item.caption;
+          figure.appendChild(caption);
+        }
+        gallery.appendChild(figure);
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          figure.classList.add('is-visible');
+        } else if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver(entries => {
+            if (entries.some(entry => entry.isIntersecting)) {
+              figure.classList.add('is-visible');
+              observer.disconnect();
+            }
+          }, { threshold: 0.15 });
+          observer.observe(figure);
+        } else {
+          figure.classList.add('is-visible');
+        }
+      });
+    }
+
   </script>
 </body>
 </html>
