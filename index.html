@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Steeze District | Streetwear & Archive Fashion</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -59,6 +60,39 @@
       opacity: 1;
       transform: translateY(0);
     }
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 560ms ease, transform 560ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+    .scroll-reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .admin-graph-enter {
+      animation: graph-enter 620ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+    @keyframes graph-enter {
+      from { opacity: 0; transform: translateY(14px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .sales-bar {
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 680ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    }
+    .sales-bar.is-visible { transform: scaleY(1); }
+    .sales-line-path {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      transition: stroke-dashoffset 1200ms ease;
+    }
+    .sales-line-path.is-visible { stroke-dashoffset: 0; }
+    .sales-pie-slice {
+      stroke-dashoffset: 100;
+      transition: stroke-dashoffset 850ms ease;
+    }
+    .sales-pie-slice.is-visible { stroke-dashoffset: var(--slice-offset); }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
     }
@@ -71,8 +105,10 @@
     }
     .product-card {
       opacity: 0;
-      animation: product-enter 420ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      transform: translateY(12px);
+      transition: opacity 520ms ease, transform 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
     }
+    .product-card.is-visible { opacity: 1; transform: translateY(0); }
     .cart-item-enter {
       animation: product-enter 260ms ease-out both;
     }
@@ -151,6 +187,8 @@
         <button onclick="toggleSearch()" class="p-2 text-neutral-400 hover:text-white transition-colors" aria-label="Search">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </button>
+
+        <button onclick="openCustomerAccount()" class="text-xs font-bold uppercase text-neutral-400 hover:text-white transition-colors" aria-label="Customer account">Account</button>
 
         <button onclick="promptAdminLogin()" class="flex items-center gap-2 p-2 text-neutral-400 hover:text-white transition-colors" aria-label="Login">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -308,16 +346,17 @@
           <h1 class="text-3xl font-black uppercase">Store Manager Dashboard</h1>
         </div>
         <p class="text-neutral-400 text-sm mt-1">Manage inventory, monitor sales, and check customer messages.</p>
+        <p id="admin-sync-status" class="mt-2 text-xs text-neutral-500" role="status">Shared store sync is ready.</p>
       </div>
 
       <!-- Quick Metrics Cards -->
       <div class="flex gap-4">
         <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-lg min-w-[130px]">
-          <span class="text-neutral-500 text-xs font-semibold uppercase block">Total Sales</span>
+          <span class="text-neutral-500 text-xs font-semibold uppercase block">Paid Revenue</span>
           <span id="metric-sales" class="text-xl font-bold text-emerald-400">R 0.00</span>
         </div>
         <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-lg min-w-[130px]">
-          <span class="text-neutral-500 text-xs font-semibold uppercase block">Orders</span>
+          <span class="text-neutral-500 text-xs font-semibold uppercase block">Paid Records</span>
           <span id="metric-orders" class="text-xl font-bold text-white">0</span>
         </div>
         <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-lg min-w-[130px]">
@@ -356,24 +395,47 @@
           <p id="summary-revenue" class="mt-1 text-2xl font-bold text-emerald-400">R 0.00</p>
         </div>
         <div class="py-4 sm:px-5">
-          <p class="text-[10px] font-bold uppercase text-neutral-500">Sales records</p>
+          <p class="text-[10px] font-bold uppercase text-neutral-500">Paid sales records</p>
           <p id="summary-records" class="mt-1 text-2xl font-bold">0</p>
         </div>
         <div class="py-4 sm:px-5">
-          <p class="text-[10px] font-bold uppercase text-neutral-500">Average record</p>
+          <p class="text-[10px] font-bold uppercase text-neutral-500">Average paid record</p>
           <p id="summary-average" class="mt-1 text-2xl font-bold">R 0.00</p>
         </div>
       </div>
 
       <section class="border border-neutral-800 bg-neutral-900 p-4 sm:p-6" aria-labelledby="sales-chart-title">
         <div class="mb-5 flex items-center justify-between gap-4">
-          <h3 id="sales-chart-title" class="text-sm font-bold uppercase">Revenue over time</h3>
+          <h3 id="sales-chart-title" class="text-sm font-bold uppercase">Revenue by period</h3>
           <span id="sales-chart-period" class="text-[10px] font-bold uppercase text-neutral-500">Last 30 days</span>
         </div>
         <div id="sales-chart" role="img" aria-label="Sales revenue bar chart" class="flex min-h-[248px] items-end gap-3 overflow-x-auto pb-2"></div>
         <p id="sales-chart-empty" class="hidden py-8 text-center text-sm text-neutral-500">No sales recorded for this period.</p>
         <p id="sales-chart-note" class="hidden mt-4 border-t border-neutral-800 pt-3 text-xs text-neutral-500">Undated legacy sales are included in All Time only.</p>
       </section>
+
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <section class="border border-neutral-800 bg-neutral-900 p-4 sm:p-6 admin-graph-enter" aria-labelledby="sales-line-title">
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <h3 id="sales-line-title" class="text-sm font-bold uppercase">Revenue trend</h3>
+            <span class="text-[10px] font-bold uppercase text-neutral-500">By period</span>
+          </div>
+          <svg id="sales-line-chart" viewBox="0 0 640 220" role="img" aria-label="Revenue trend line chart" class="w-full min-h-56 overflow-visible"></svg>
+          <p id="sales-line-empty" class="hidden py-4 text-center text-sm text-neutral-500">No paid sales to chart.</p>
+        </section>
+        <section class="border border-neutral-800 bg-neutral-900 p-4 sm:p-6 admin-graph-enter" style="animation-delay:100ms" aria-labelledby="sales-pie-title">
+          <div class="mb-4 flex items-center justify-between gap-3">
+            <h3 id="sales-pie-title" class="text-sm font-bold uppercase">Sales mix</h3>
+            <span class="text-[10px] font-bold uppercase text-neutral-500">By product</span>
+          </div>
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <svg id="sales-pie-chart" viewBox="0 0 120 120" role="img" aria-label="Sales mix pie chart" class="h-44 w-44 shrink-0 -rotate-90"></svg>
+            <div id="sales-pie-legend" class="w-full space-y-2 text-xs"></div>
+          </div>
+          <p id="sales-pie-empty" class="hidden py-4 text-center text-sm text-neutral-500">No paid sales to chart.</p>
+        </section>
+      </div>
+      <p class="text-xs text-neutral-500">Only paid sales count as revenue. The current checkout does not process payments, so it cannot create paid sales until a payment provider is connected.</p>
     </section>
 
     <div id="admin-management-panel" role="tabpanel" aria-labelledby="admin-management-tab" class="hidden grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-8">
@@ -467,7 +529,7 @@
         <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
           <div class="p-4 border-b border-neutral-800 flex items-center justify-between">
             <h2 class="font-bold uppercase text-sm">Inventory & Stock Controls</h2>
-            <button onclick="switchView('store')" class="text-xs text-neutral-400 hover:text-white uppercase font-bold">Exit Admin Mode</button>
+              <button onclick="handleAdminLogout()" class="text-xs text-neutral-400 hover:text-white uppercase font-bold">Exit Admin Mode</button>
           </div>
 
           <div class="overflow-x-auto">
@@ -563,20 +625,22 @@
     </div>
     <form id="admin-login-form" onsubmit="handleAdminLogin(event)" class="space-y-4" novalidate>
       <label for="admin-passcode" class="block text-xs font-bold uppercase text-neutral-400">Email address</label>
-      <input id="admin-passcode" type="text" inputmode="email" autocomplete="email" aria-describedby="admin-login-error admin-login-status" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white" placeholder="Enter your email">
-      <p id="admin-login-error" class="hidden text-xs text-red-400" role="alert">Please enter a valid email address.</p>
-      <p id="admin-login-status" class="hidden text-xs text-emerald-400" role="status">Email saved.</p>
-      <button type="submit" class="w-full bg-white text-black font-extrabold uppercase py-3 tracking-wider text-xs hover:bg-neutral-200 transition-colors">Continue</button>
+      <input id="admin-passcode" type="email" required autocomplete="username" aria-describedby="admin-login-error admin-login-status" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white" placeholder="Admin email">
+      <label for="admin-password" class="block text-xs font-bold uppercase text-neutral-400">Password</label>
+      <input id="admin-password" type="password" required autocomplete="current-password" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white" placeholder="Admin password">
+      <p id="admin-login-error" class="hidden text-xs text-red-400" role="alert"></p>
+      <p id="admin-login-status" class="hidden text-xs text-emerald-400" role="status"></p>
+      <button id="admin-login-submit" type="submit" class="w-full bg-white text-black font-extrabold uppercase py-3 tracking-wider text-xs hover:bg-neutral-200 transition-colors">Sign in</button>
     </form>
   </dialog>
 
   <dialog id="customer-profile-modal" class="bg-neutral-950 text-white border border-neutral-800 p-6 w-[calc(100%-2rem)] max-w-sm">
     <div class="flex items-center justify-between mb-5">
-      <h3 class="font-bold uppercase tracking-wide">Comment profile</h3>
-      <button type="button" onclick="closeModal('customer-profile-modal')" class="p-2 text-neutral-400 hover:text-white" aria-label="Close">✕</button>
+      <h3 id="customer-profile-title" class="font-bold uppercase tracking-wide">Customer account</h3>
+      <button type="button" onclick="pendingAccountOpen=false; closeModal('customer-profile-modal')" class="p-2 text-neutral-400 hover:text-white" aria-label="Close">✕</button>
     </div>
     <form id="customer-profile-form" onsubmit="saveCustomerProfile(event)" class="space-y-4">
-      <p class="text-xs text-neutral-400">Set your display name and email once. Your password is checked but never saved.</p>
+      <p id="customer-profile-help" class="text-xs text-neutral-400">Create an account once to post comments from any device. Your password is handled by Supabase and never stored by this page.</p>
       <label class="sr-only" for="customer-profile-username">Username</label>
       <input id="customer-profile-username" required maxlength="60" autocomplete="nickname" placeholder="Username" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm focus:outline-none focus:border-white">
       <label class="sr-only" for="customer-profile-email">Email address</label>
@@ -584,8 +648,40 @@
       <label class="sr-only" for="customer-profile-password">Password</label>
       <input id="customer-profile-password" required type="password" minlength="6" autocomplete="new-password" placeholder="Password (6+ characters)" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm focus:outline-none focus:border-white">
       <p id="customer-profile-error" class="hidden text-xs text-red-400" role="alert"></p>
-      <button type="submit" class="w-full bg-white py-3 text-xs font-bold uppercase text-black hover:bg-neutral-200">Save profile & post</button>
+      <button id="customer-profile-submit" type="submit" class="w-full bg-white py-3 text-xs font-bold uppercase text-black hover:bg-neutral-200">Create account & post</button>
+      <button id="customer-profile-toggle" type="button" onclick="toggleCustomerAuthMode()" class="w-full text-xs text-neutral-400 underline hover:text-white">Already have an account? Sign in</button>
     </form>
+  </dialog>
+
+  <dialog id="customer-account-modal" class="bg-neutral-950 text-white border border-neutral-800 p-6 w-[calc(100%-2rem)] max-w-xl">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold uppercase tracking-wide">Delivery details</h3>
+      <button type="button" onclick="closeModal('customer-account-modal')" class="p-2 text-neutral-400 hover:text-white" aria-label="Close account details">✕</button>
+    </div>
+    <form id="customer-account-form" onsubmit="saveCustomerAccount(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <label class="text-xs font-bold uppercase text-neutral-400 sm:col-span-2">Full name
+        <input id="account-full-name" required maxlength="100" autocomplete="name" class="mt-2 w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white">
+      </label>
+      <label class="text-xs font-bold uppercase text-neutral-400">Phone
+        <input id="account-phone" required type="tel" maxlength="40" autocomplete="tel" class="mt-2 w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white">
+      </label>
+      <label class="text-xs font-bold uppercase text-neutral-400">Country
+        <input id="account-country" required maxlength="80" autocomplete="country-name" class="mt-2 w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white">
+      </label>
+      <label class="text-xs font-bold uppercase text-neutral-400 sm:col-span-2">Street address
+        <input id="account-street" required maxlength="200" autocomplete="street-address" class="mt-2 w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white">
+      </label>
+      <label class="text-xs font-bold uppercase text-neutral-400">City / town
+        <input id="account-city" required maxlength="100" autocomplete="address-level2" class="mt-2 w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white">
+      </label>
+      <label class="text-xs font-bold uppercase text-neutral-400">Postal code
+        <input id="account-postal-code" required maxlength="30" autocomplete="postal-code" class="mt-2 w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white">
+      </label>
+      <p id="customer-account-error" class="hidden text-xs text-red-400 sm:col-span-2" role="alert"></p>
+      <button type="submit" class="sm:col-span-2 w-full bg-white py-3 text-xs font-bold uppercase text-black hover:bg-neutral-200">Save delivery details</button>
+    </form>
+    <p class="mt-4 text-xs text-neutral-500">Your delivery details are saved to your signed-in account so you can reuse them. Only you can read or change them.</p>
+    <button type="button" onclick="handleCustomerLogout()" class="mt-4 text-xs text-neutral-500 underline hover:text-white">Sign out</button>
   </dialog>
 
   <!-- CONTACT MODAL -->
@@ -712,6 +808,20 @@
     let detailQuantity = 1;
     let pendingProductImage = '';
     let pendingExperienceImage = '';
+    let customerAuthMode = 'signup';
+    let pendingAccountOpen = false;
+    let sdAuthUser = null;
+    let isStoreAdmin = false;
+    let remoteReady = false;
+    let remoteSyncTimer = null;
+    let remoteRefreshTimer = null;
+    let remoteSyncInProgress = false;
+    let remoteSyncPending = false;
+    const uploadedMedia = new Map();
+
+    const SUPABASE_URL = 'https://urtvqksvhtdyepgcdqqj.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_KQDUmJiWs1kNu6egckjrfg_B783vJ9T';
+    const sdSupabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
     const syncChannel = new BroadcastChannel('steeze_district_sync');
 
@@ -726,6 +836,8 @@
       updateCommentIdentityLabel();
       updateCartUI();
       observeExperienceHeading();
+      observeCustomerReveals();
+      void initializeSupabase();
 
       // Secret Admin Hotkey Ctrl + Shift + S
       window.addEventListener('keydown', (e) => {
@@ -762,9 +874,10 @@
       localStorage.setItem('sd_product_comments', JSON.stringify(productComments));
       localStorage.setItem('sd_experience_images', JSON.stringify(experienceImages));
       localStorage.setItem('sd_site_settings', JSON.stringify(siteSettings));
-      if (customerProfile) localStorage.setItem('sd_customer_profile', JSON.stringify(customerProfile));
+      if (customerProfile) localStorage.setItem('sd_customer_profile', JSON.stringify({ id: customerProfile.id, username: customerProfile.username, email: customerProfile.email }));
       localStorage.setItem('sd_revenue', totalRevenue.toString());
       syncChannel.postMessage({ type: 'STATE_UPDATED' });
+      if (remoteReady && isStoreAdmin) queueAdminSync();
     }
 
     function loadState() {
@@ -798,8 +911,7 @@
       const storedExperiences = localStorage.getItem('sd_experience_images');
       experienceImages = storedExperiences ? JSON.parse(storedExperiences) : [];
 
-      const storedCustomerProfile = localStorage.getItem('sd_customer_profile');
-      customerProfile = storedCustomerProfile ? JSON.parse(storedCustomerProfile) : null;
+      customerProfile = null;
 
       const storedSettings = localStorage.getItem('sd_site_settings');
       siteSettings = storedSettings ? { ...siteSettings, ...JSON.parse(storedSettings) } : { heroImage: '', logoImage: '' };
@@ -808,48 +920,379 @@
       totalRevenue = storedRev ? parseFloat(storedRev) : 0;
     }
 
+    function queueAdminSync() {
+      clearTimeout(remoteSyncTimer);
+      remoteSyncTimer = setTimeout(() => { void syncAdminState(); }, 250);
+    }
+
+    function setAdminSyncStatus(message, isError = false) {
+      const status = document.getElementById('admin-sync-status');
+      if (!status) return;
+      status.textContent = message;
+      status.className = `mt-2 text-xs ${isError ? 'text-red-400' : 'text-neutral-500'}`;
+    }
+
+    function setCustomerFromAuth(user) {
+      sdAuthUser = user || null;
+      if (!user) {
+        customerProfile = null;
+        localStorage.removeItem('sd_customer_profile');
+        updateCommentIdentityLabel();
+        return;
+      }
+      customerProfile = {
+        id: user.id,
+        username: user.user_metadata?.username || user.email?.split('@')[0] || 'Customer',
+        email: user.email || '',
+        fullName: '', phone: '', deliveryAddress: {}
+      };
+      localStorage.setItem('sd_customer_profile', JSON.stringify({ id: customerProfile.id, username: customerProfile.username, email: customerProfile.email }));
+      updateCommentIdentityLabel();
+      void loadCustomerAccount();
+    }
+
+    async function loadCustomerAccount() {
+      if (!sdSupabase || !customerProfile) return;
+      const { data, error } = await sdSupabase.from('customer_profiles').select('full_name,phone,delivery_address').eq('user_id', customerProfile.id).maybeSingle();
+      if (error) {
+        console.error('Could not load saved delivery details:', error.message);
+        return;
+      }
+      if (!data) return;
+      customerProfile.fullName = data.full_name || '';
+      customerProfile.phone = data.phone || '';
+      customerProfile.deliveryAddress = data.delivery_address || {};
+      fillCustomerAccountForm();
+    }
+
+    function fillCustomerAccountForm() {
+      const address = customerProfile?.deliveryAddress || {};
+      document.getElementById('account-full-name').value = customerProfile?.fullName || '';
+      document.getElementById('account-phone').value = customerProfile?.phone || '';
+      document.getElementById('account-street').value = address.street || '';
+      document.getElementById('account-city').value = address.city || '';
+      document.getElementById('account-postal-code').value = address.postalCode || '';
+      document.getElementById('account-country').value = address.country || '';
+    }
+
+    async function openCustomerAccount() {
+      if (!customerProfile) {
+        pendingAccountOpen = true;
+        openCustomerProfile();
+        document.getElementById('customer-profile-title').textContent = 'Sign in or create account';
+        return;
+      }
+      await loadCustomerAccount();
+      fillCustomerAccountForm();
+      document.getElementById('customer-account-error').classList.add('hidden');
+      document.getElementById('customer-account-modal').showModal();
+    }
+
+    async function saveCustomerAccount(event) {
+      event.preventDefault();
+      const errorMessage = document.getElementById('customer-account-error');
+      errorMessage.classList.add('hidden');
+      if (!sdSupabase || !customerProfile) {
+        errorMessage.textContent = 'Sign in to save delivery details.';
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+      const fullName = document.getElementById('account-full-name').value.trim();
+      const phone = document.getElementById('account-phone').value.trim();
+      const deliveryAddress = {
+        street: document.getElementById('account-street').value.trim(),
+        city: document.getElementById('account-city').value.trim(),
+        postalCode: document.getElementById('account-postal-code').value.trim(),
+        country: document.getElementById('account-country').value.trim()
+      };
+      const { error } = await sdSupabase.from('customer_profiles').upsert({
+        user_id: customerProfile.id,
+        full_name: fullName,
+        phone,
+        delivery_address: deliveryAddress,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      if (error) {
+        errorMessage.textContent = error.message;
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+      customerProfile.fullName = fullName;
+      customerProfile.phone = phone;
+      customerProfile.deliveryAddress = deliveryAddress;
+      closeModal('customer-account-modal');
+    }
+
+    async function handleCustomerLogout() {
+      if (!sdSupabase) return;
+      const { error } = await sdSupabase.auth.signOut();
+      if (error) {
+        const errorMessage = document.getElementById('customer-account-error');
+        errorMessage.textContent = error.message;
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+      pendingAccountOpen = false;
+      closeModal('customer-account-modal');
+      setCustomerFromAuth(null);
+      isStoreAdmin = false;
+    }
+
+    async function checkStoreAdmin(user) {
+      if (!sdSupabase || !user) return false;
+      const { data, error } = await sdSupabase.from('store_admins').select('user_id').eq('user_id', user.id).maybeSingle();
+      if (error) return false;
+      return Boolean(data);
+    }
+
+    async function initializeSupabase() {
+      if (!sdSupabase) {
+        console.error('Supabase client failed to load. Check the Supabase JavaScript CDN connection.');
+        return;
+      }
+      try {
+        const { data: { session } } = await sdSupabase.auth.getSession();
+        setCustomerFromAuth(session?.user || null);
+        isStoreAdmin = await checkStoreAdmin(session?.user);
+        await loadRemoteState();
+        remoteReady = true;
+        subscribeToRemoteChanges();
+        renderStorefront();
+        renderExperienceGallery();
+        renderAdminDashboard();
+        if (isStoreAdmin) queueAdminSync();
+        sdSupabase.auth.onAuthStateChange((_event, nextSession) => {
+          setCustomerFromAuth(nextSession?.user || null);
+          void (async () => {
+            isStoreAdmin = await checkStoreAdmin(nextSession?.user);
+            if (!isStoreAdmin && currentView === 'admin') switchView('store');
+            if (isStoreAdmin) {
+              await loadPrivateAdminData();
+              queueAdminSync();
+            }
+            renderAdminDashboard();
+            if (activeProductId) renderProductComments(activeProductId);
+          })();
+        });
+      } catch (error) {
+        console.error('Could not initialize Supabase:', error);
+      }
+    }
+
+    async function loadRemoteState() {
+      if (!sdSupabase) return;
+      const [productResult, settingResult, galleryResult, commentResult] = await Promise.all([
+        sdSupabase.from('store_products').select('id,data'),
+        sdSupabase.from('store_settings').select('data').eq('id', 'global').maybeSingle(),
+        sdSupabase.from('store_gallery').select('id,data').order('created_at', { ascending: false }),
+        sdSupabase.from('product_comments').select('id,product_id,product_name,owner_id,username,text,created_at').order('created_at', { ascending: false })
+      ]);
+      for (const result of [productResult, settingResult, galleryResult, commentResult]) {
+        if (result.error) console.error('Supabase public data load failed:', result.error.message);
+      }
+      const remoteStoreInitialized = Boolean(settingResult.data?.data);
+      if (!productResult.error) {
+        products = productResult.data?.length
+          ? productResult.data.map(row => row.data)
+          : remoteStoreInitialized ? [] : (products.length ? products : defaultProducts);
+      }
+      if (!settingResult.error && settingResult.data?.data) siteSettings = { heroImage: '', logoImage: '', ...settingResult.data.data };
+      if (!galleryResult.error) experienceImages = galleryResult.data?.length
+        ? galleryResult.data.map(row => row.data)
+        : remoteStoreInitialized ? [] : experienceImages;
+      if (!commentResult.error) {
+        productComments = (commentResult.data || []).map(row => ({
+          id: row.id, productId: row.product_id, productName: row.product_name,
+          ownerId: row.owner_id, username: row.username, text: row.text,
+          date: new Date(row.created_at).toLocaleDateString(), email: ''
+        }));
+      }
+      if (isStoreAdmin) await loadPrivateAdminData();
+      localStorage.setItem('sd_products', JSON.stringify(products));
+      localStorage.setItem('sd_experience_images', JSON.stringify(experienceImages));
+      localStorage.setItem('sd_product_comments', JSON.stringify(productComments));
+      localStorage.setItem('sd_site_settings', JSON.stringify(siteSettings));
+      applySiteSettings();
+    }
+
+    async function loadPrivateAdminData() {
+      if (!sdSupabase || !isStoreAdmin) return;
+      const [messages, sales, privateDetails] = await Promise.all([
+        sdSupabase.from('store_contacts').select('data').order('created_at', { ascending: false }),
+        sdSupabase.from('store_sales').select('data').order('created_at', { ascending: false }),
+        sdSupabase.from('product_comment_private').select('comment_id,email')
+      ]);
+      for (const result of [messages, sales, privateDetails]) if (result.error) console.error('Supabase admin data load failed:', result.error.message);
+      if (!messages.error) {
+        const remoteMessages = (messages.data || []).map(row => row.data);
+        if (remoteMessages.length) contactMessages = remoteMessages;
+        else if (contactMessages.length) {
+          const { error: migrationError } = await sdSupabase.from('store_contacts').insert(contactMessages.map(message => ({ id: message.id, data: message })));
+          if (migrationError) console.error('Could not copy existing local contact messages:', migrationError.message);
+        }
+      }
+      if (!sales.error) {
+        const remoteSales = (sales.data || []).map(row => row.data);
+        if (remoteSales.length || salesHistory.length === 0) salesHistory = remoteSales;
+        totalRevenue = salesHistory.reduce((sum, sale) => sum + (Number(sale.amount) || 0), 0);
+      }
+      if (!privateDetails.error) {
+        const emails = new Map((privateDetails.data || []).map(row => [row.comment_id, row.email]));
+        productComments.forEach(comment => { comment.email = emails.get(comment.id) || ''; });
+      }
+    }
+
+    function subscribeToRemoteChanges() {
+      if (!sdSupabase) return;
+      sdSupabase.channel('steeze-store-global')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_products' }, scheduleRemoteRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, scheduleRemoteRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_gallery' }, scheduleRemoteRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'product_comments' }, scheduleRemoteRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_contacts' }, scheduleRemoteRefresh)
+        .subscribe();
+    }
+
+    function scheduleRemoteRefresh() {
+      clearTimeout(remoteRefreshTimer);
+      remoteRefreshTimer = setTimeout(() => {
+        void loadRemoteState().then(() => {
+          renderStorefront();
+          renderExperienceGallery();
+          renderAdminDashboard();
+          if (activeProductId) renderProductComments(activeProductId);
+        });
+      }, 180);
+    }
+
+    async function uploadDataUrl(dataUrl) {
+      if (!dataUrl?.startsWith('data:')) return dataUrl;
+      if (uploadedMedia.has(dataUrl)) return uploadedMedia.get(dataUrl);
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const extension = blob.type === 'image/png' ? 'png' : blob.type === 'image/jpeg' ? 'jpg' : 'webp';
+      const randomId = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const path = `store/${randomId}.${extension}`;
+      const { error } = await sdSupabase.storage.from('store-media').upload(path, blob, { contentType: blob.type, upsert: false });
+      if (error) throw error;
+      const url = sdSupabase.storage.from('store-media').getPublicUrl(path).data.publicUrl;
+      uploadedMedia.set(dataUrl, url);
+      return url;
+    }
+
+    async function syncAdminState() {
+      if (!sdSupabase || !remoteReady || !isStoreAdmin) return;
+      if (remoteSyncInProgress) {
+        remoteSyncPending = true;
+        return;
+      }
+      remoteSyncInProgress = true;
+      setAdminSyncStatus('Syncing changes to the shared store…');
+      try {
+        const productSnapshot = [...products];
+        const gallerySnapshot = [...experienceImages];
+        const salesSnapshot = [...salesHistory];
+        const settingsSnapshot = { ...siteSettings };
+        const remoteProducts = await Promise.all(productSnapshot.map(async product => ({ ...product, image: await uploadDataUrl(product.image) })));
+        const remoteSettings = {
+          ...settingsSnapshot,
+          heroImage: await uploadDataUrl(settingsSnapshot.heroImage),
+          logoImage: await uploadDataUrl(settingsSnapshot.logoImage)
+        };
+        const remoteGallery = await Promise.all(gallerySnapshot.map(async item => ({ ...item, image: await uploadDataUrl(item.image) })));
+        const operations = [sdSupabase.from('store_settings').upsert({ id: 'global', data: remoteSettings }, { onConflict: 'id' })];
+        if (remoteProducts.length) operations.push(sdSupabase.from('store_products').upsert(remoteProducts.map(item => ({ id: item.id, data: item })), { onConflict: 'id' }));
+        if (remoteGallery.length) operations.push(sdSupabase.from('store_gallery').upsert(remoteGallery.map(item => ({ id: item.id, data: item })), { onConflict: 'id' }));
+        if (salesSnapshot.length) operations.push(sdSupabase.from('store_sales').upsert(salesSnapshot.map((item, index) => ({ id: item.id || `sale_${index}`, data: item })), { onConflict: 'id' }));
+        const results = await Promise.all(operations);
+        const failed = results.find(result => result.error);
+        if (failed) throw failed.error;
+        await removeStaleRows('store_products', remoteProducts.map(item => item.id));
+        await removeStaleRows('store_gallery', remoteGallery.map(item => item.id));
+        await removeStaleRows('store_sales', salesSnapshot.map((item, index) => item.id || `sale_${index}`));
+        setAdminSyncStatus('Changes are shared with all visitors.');
+      } catch (error) {
+        console.error('Supabase store sync failed:', error.message || error);
+        setAdminSyncStatus(`Shared sync failed: ${error.message || 'check Supabase setup and connection'}`, true);
+      } finally {
+        remoteSyncInProgress = false;
+        if (remoteSyncPending) {
+          remoteSyncPending = false;
+          queueAdminSync();
+        }
+      }
+    }
+
+    async function removeStaleRows(table, currentIds) {
+      const { data, error } = await sdSupabase.from(table).select('id');
+      if (error) throw error;
+      const keep = new Set(currentIds);
+      const stale = (data || []).map(row => row.id).filter(id => !keep.has(id));
+      if (stale.length) {
+        const { error: deleteError } = await sdSupabase.from(table).delete().in('id', stale);
+        if (deleteError) throw deleteError;
+      }
+    }
+
     function promptAdminLogin() {
       const loginModal = document.getElementById('admin-login-modal');
       document.getElementById('admin-login-error').classList.add('hidden');
       document.getElementById('admin-login-status').classList.add('hidden');
       document.getElementById('admin-passcode').value = '';
+      document.getElementById('admin-password').value = '';
       loginModal.showModal();
       document.getElementById('admin-passcode').focus();
     }
 
-    function handleAdminLogin(e) {
+    async function handleAdminLogin(e) {
       e.preventDefault();
-      const entry = document.getElementById('admin-passcode').value.trim();
+      const email = document.getElementById('admin-passcode').value.trim();
+      const password = document.getElementById('admin-password').value;
       const error = document.getElementById('admin-login-error');
       const status = document.getElementById('admin-login-status');
       error.classList.add('hidden');
       status.classList.add('hidden');
-
-      if (entry === '22e4') {
-        closeModal('admin-login-modal');
-        switchView('admin');
-        return;
-      }
-
-      const emailPattern = /^[^\s@]+@[^\s@]+(?:\.[^\s@]+)+$/;
-      if (!emailPattern.test(entry)) {
+      if (!sdSupabase) {
+        error.textContent = 'Supabase did not load. Check your connection and refresh.';
         error.classList.remove('hidden');
-        document.getElementById('admin-passcode').select();
         return;
       }
-
-      const normalizedEmail = entry.toLowerCase();
-      const alreadySaved = emailSignups.some(signup => signup.email.toLowerCase() === normalizedEmail);
-      if (!alreadySaved) {
-        emailSignups.unshift({ email: entry, date: new Date().toLocaleString() });
-        saveState();
-        renderAdminDashboard();
+      const { data, error: authError } = await sdSupabase.auth.signInWithPassword({ email, password });
+      if (authError) {
+        error.textContent = authError.message;
+        error.classList.remove('hidden');
+        return;
       }
+      if (!(await checkStoreAdmin(data.user))) {
+        await sdSupabase.auth.signOut();
+        error.textContent = 'This Supabase account is not listed as a store admin. Run supabase-setup.sql first.';
+        error.classList.remove('hidden');
+        return;
+      }
+      isStoreAdmin = true;
+      setCustomerFromAuth(data.user);
+      await loadRemoteState();
+      remoteReady = true;
       document.getElementById('admin-passcode').value = '';
+      document.getElementById('admin-password').value = '';
+      status.textContent = 'Signed in securely.';
       status.classList.remove('hidden');
+      closeModal('admin-login-modal');
+      switchView('admin');
+      queueAdminSync();
+    }
+
+    async function handleAdminLogout() {
+      if (sdSupabase) await sdSupabase.auth.signOut();
+      isStoreAdmin = false;
+      switchView('store');
     }
 
     function switchView(view) {
+      if (view === 'admin' && !isStoreAdmin) {
+        promptAdminLogin();
+        return;
+      }
       currentView = view;
       document.getElementById('storefront-view').classList.toggle('hidden', view !== 'store');
       document.getElementById('admin-view').classList.toggle('hidden', view !== 'admin');
@@ -950,53 +1393,100 @@
 
     function openCustomerProfile() {
       isEditingCustomerProfile = Boolean(customerProfile);
+      customerAuthMode = isEditingCustomerProfile ? 'edit' : 'signup';
       document.getElementById('customer-profile-username').value = customerProfile?.username || '';
       document.getElementById('customer-profile-email').value = customerProfile?.email || '';
+      document.getElementById('customer-profile-email').readOnly = isEditingCustomerProfile;
       document.getElementById('customer-profile-password').value = '';
+      document.getElementById('customer-profile-password').classList.toggle('hidden', isEditingCustomerProfile);
+      document.getElementById('customer-profile-password').required = !isEditingCustomerProfile;
+      document.getElementById('customer-profile-username').required = true;
+      document.getElementById('customer-profile-username').classList.remove('hidden');
+      document.getElementById('customer-profile-toggle').classList.toggle('hidden', isEditingCustomerProfile);
+      document.getElementById('customer-profile-toggle').textContent = 'Already have an account? Sign in';
+      document.getElementById('customer-profile-help').textContent = isEditingCustomerProfile
+        ? 'Update the display name shown beside your comments.'
+        : 'Create an account once to post comments from any device. Your password is handled by Supabase and never stored by this page.';
+      document.getElementById('customer-profile-submit').textContent = isEditingCustomerProfile ? 'Save name & post' : 'Create account & post';
       document.getElementById('customer-profile-error').classList.add('hidden');
       document.getElementById('customer-profile-modal').showModal();
     }
 
-    function createCustomerId() {
-      return window.crypto?.randomUUID ? window.crypto.randomUUID() : `customer_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    function toggleCustomerAuthMode() {
+      customerAuthMode = customerAuthMode === 'signup' ? 'signin' : 'signup';
+      const signingIn = customerAuthMode === 'signin';
+      document.getElementById('customer-profile-username').required = !signingIn;
+      document.getElementById('customer-profile-username').classList.toggle('hidden', signingIn);
+      document.getElementById('customer-profile-password').required = true;
+      document.getElementById('customer-profile-help').textContent = signingIn
+        ? 'Sign in with your existing comment account. Your password is handled by Supabase and never stored by this page.'
+        : 'Create an account once to post comments from any device. Your password is handled by Supabase and never stored by this page.';
+      document.getElementById('customer-profile-submit').textContent = signingIn ? 'Sign in & post' : 'Create account & post';
+      document.getElementById('customer-profile-toggle').textContent = signingIn ? 'Need an account? Create one' : 'Already have an account? Sign in';
+      document.getElementById('customer-profile-password').autocomplete = signingIn ? 'current-password' : 'new-password';
     }
 
-    function saveCustomerProfile(event) {
+    async function saveCustomerProfile(event) {
       event.preventDefault();
       const username = document.getElementById('customer-profile-username').value.trim();
       const email = document.getElementById('customer-profile-email').value.trim();
       const password = document.getElementById('customer-profile-password').value;
       const error = document.getElementById('customer-profile-error');
       error.classList.add('hidden');
-
-      if (!username || !email || password.length < 6) {
-        error.textContent = 'Enter a username, valid email, and password with at least 6 characters.';
+      if (!sdSupabase) {
+        error.textContent = 'Supabase did not load. Check your connection and refresh.';
         error.classList.remove('hidden');
         return;
       }
-
-      customerProfile = {
-        id: isEditingCustomerProfile && customerProfile ? customerProfile.id : createCustomerId(),
-        username,
-        email
-      };
-      saveState();
-      updateCommentIdentityLabel();
-      closeModal('customer-profile-modal');
-      document.getElementById('customer-profile-form').reset();
-      isEditingCustomerProfile = false;
-      if (pendingCommentText) {
-        const text = pendingCommentText;
-        pendingCommentText = '';
-        publishProductComment(text);
+      try {
+        if (customerAuthMode === 'edit') {
+          if (!username) throw new Error('Enter a display name.');
+          const { data, error: updateError } = await sdSupabase.auth.updateUser({ data: { username } });
+          if (updateError) throw updateError;
+          setCustomerFromAuth(data.user);
+        } else if (customerAuthMode === 'signin') {
+          const { data, error: authError } = await sdSupabase.auth.signInWithPassword({ email, password });
+          if (authError) throw authError;
+          setCustomerFromAuth(data.user);
+        } else {
+          if (!username || !email || password.length < 6) throw new Error('Enter a username, valid email, and password with at least 6 characters.');
+          const { data, error: authError } = await sdSupabase.auth.signUp({ email, password, options: { data: { username } } });
+          if (authError) throw authError;
+          if (!data.session || !data.user) {
+            error.textContent = 'Check your email to confirm the account, then choose “Already have an account? Sign in”.';
+            error.classList.remove('hidden');
+            customerAuthMode = 'signin';
+            document.getElementById('customer-profile-submit').textContent = 'Sign in & post';
+            document.getElementById('customer-profile-toggle').textContent = 'Need an account? Create one';
+            return;
+          }
+          setCustomerFromAuth(data.user);
+        }
+        closeModal('customer-profile-modal');
+        document.getElementById('customer-profile-form').reset();
+        document.getElementById('customer-profile-email').readOnly = false;
+        isEditingCustomerProfile = false;
+        document.getElementById('customer-profile-title').textContent = 'Customer account';
+        if (pendingCommentText) {
+          const text = pendingCommentText;
+          pendingCommentText = '';
+          await publishProductComment(text);
+        } else if (pendingAccountOpen) {
+          pendingAccountOpen = false;
+          await openCustomerAccount();
+        }
+      } catch (authError) {
+        error.textContent = authError.message || 'Could not sign in. Try again.';
+        error.classList.remove('hidden');
       }
     }
 
-    function publishProductComment(text) {
+    async function publishProductComment(text) {
       const product = products.find(item => item.id === activeProductId);
-      if (!product || !customerProfile) return;
-      productComments.unshift({
-        id: `c_${Date.now()}`,
+      if (!product || !customerProfile || !sdSupabase) return;
+      const commentId = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const comment = {
+        id: `c_${commentId}`,
         productId: product.id,
         productName: product.name,
         ownerId: customerProfile.id,
@@ -1004,21 +1494,39 @@
         email: customerProfile.email,
         text,
         date: new Date().toLocaleDateString()
+      };
+      const { error } = await sdSupabase.rpc('create_product_comment', {
+        p_id: comment.id,
+        p_product_id: comment.productId,
+        p_product_name: comment.productName,
+        p_username: comment.username,
+        p_text: comment.text,
+        p_email: comment.email
       });
-      saveState();
+      if (error) {
+        const message = document.getElementById('comment-error');
+        message.textContent = error.message;
+        message.classList.remove('hidden');
+        return;
+      }
+      productComments.unshift(comment);
       renderProductComments(product.id);
       renderAdminDashboard();
       document.getElementById('product-comment-form').reset();
       updateCommentIdentityLabel();
     }
 
-    function deleteProductComment(commentId, adminAction = false) {
+    async function deleteProductComment(commentId, adminAction = false) {
       const comment = productComments.find(item => item.id === commentId);
       const ownsComment = comment && customerProfile && comment.ownerId === customerProfile.id;
-      if (!comment || (!ownsComment && !(adminAction && currentView === 'admin'))) return;
+      if (!comment || (!ownsComment && !(adminAction && isStoreAdmin))) return;
       if (!confirm('Delete this comment?')) return;
+      const { error } = await sdSupabase.from('product_comments').delete().eq('id', commentId);
+      if (error) {
+        alert(`Could not delete comment: ${error.message}`);
+        return;
+      }
       productComments = productComments.filter(item => item.id !== commentId);
-      saveState();
       if (activeProductId) renderProductComments(activeProductId);
       renderAdminDashboard();
     }
@@ -1146,7 +1654,7 @@
       });
     }
 
-    function submitProductComment(event) {
+    async function submitProductComment(event) {
       event.preventDefault();
       const text = document.getElementById('comment-text').value.trim();
       const error = document.getElementById('comment-error');
@@ -1157,7 +1665,7 @@
         openCustomerProfile();
         return;
       }
-      publishProductComment(text);
+      await publishProductComment(text);
     }
 
     function handleProductCategoryChange() {
@@ -1165,6 +1673,22 @@
       renderNewProductSizeEditor();
     }
 
+    function observeCustomerReveals(root = document) {
+      const elements = root.querySelectorAll(".product-card, .customer-scroll-reveal");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+        elements.forEach(element => element.classList.add("is-visible"));
+        return;
+      }
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -35px 0px" });
+      elements.forEach(element => observer.observe(element));
+    }
     function observeExperienceHeading() {
       const elements = document.querySelectorAll('.experience-reveal');
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
@@ -1247,7 +1771,7 @@
         card.tabIndex = 0;
         card.setAttribute('role', 'link');
         card.setAttribute('aria-label', `View ${p.name}`);
-        card.style.animationDelay = `${Math.min(grid.children.length, 7) * 55}ms`;
+        card.style.transitionDelay = `${Math.min(grid.children.length, 7) * 55}ms`;
         card.addEventListener('click', event => {
           if (!event.target.closest('button, a')) openProductDetail(p.id);
         });
@@ -1285,6 +1809,7 @@
         });
         grid.appendChild(card);
       });
+      observeCustomerReveals(grid);
     }
 
     function addToCart(productId, size = '') {
@@ -1407,7 +1932,7 @@
       document.getElementById('contact-modal').showModal();
     }
 
-    function handleContactSubmit(e) {
+    async function handleContactSubmit(e) {
       e.preventDefault();
       const name = document.getElementById('contact-name').value.trim();
       const email = document.getElementById('contact-email').value.trim();
@@ -1415,6 +1940,10 @@
       const comment = document.getElementById('contact-comment').value.trim();
 
       if (!name || !email || !comment) return;
+      if (!sdSupabase) {
+        alert('The shared message service is unavailable. Check your connection and try again.');
+        return;
+      }
 
       const newMsg = {
         id: 'm_' + Date.now(),
@@ -1425,8 +1954,14 @@
         date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
+      const { error } = await sdSupabase.from('store_contacts').insert({ id: newMsg.id, data: newMsg });
+      if (error) {
+        alert(`Could not send your message: ${error.message}`);
+        return;
+      }
       contactMessages.unshift(newMsg);
       saveState();
+      if (isStoreAdmin) await loadPrivateAdminData();
       renderAdminDashboard();
 
       document.getElementById('contact-form').reset();
@@ -1456,6 +1991,124 @@
       return Number.isNaN(date.getTime()) ? null : date;
     }
 
+    function isPaidSale(sale) {
+      const status = String(sale.status || '').toLowerCase();
+      return ['paid', 'complete', 'completed', 'succeeded', 'success'].includes(status);
+    }
+
+    function getPaidSales() {
+      return salesHistory.filter(isPaidSale);
+    }
+
+    function renderSalesLineChart(buckets, formatMoney, periodLabel) {
+      const svg = document.getElementById('sales-line-chart');
+      const empty = document.getElementById('sales-line-empty');
+      svg.replaceChildren();
+      const points = buckets;
+      empty.classList.toggle('hidden', points.some(point => point.amount > 0));
+      if (!points.some(point => point.amount > 0)) return;
+
+      const NS = 'http://www.w3.org/2000/svg';
+      const make = (tag, attrs = {}) => {
+        const node = document.createElementNS(NS, tag);
+        Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+        return node;
+      };
+      const left = 42, right = 620, top = 18, bottom = 172;
+      const max = Math.max(...points.map(point => point.amount), 1);
+      for (let i = 0; i <= 4; i += 1) {
+        const y = bottom - (bottom - top) * i / 4;
+        svg.appendChild(make('line', { x1: left, y1: y, x2: right, y2: y, stroke: '#404040', 'stroke-width': 1 }));
+        const label = make('text', { x: left - 6, y: y + 4, 'text-anchor': 'end', fill: '#737373', 'font-size': 10 });
+        label.textContent = `R${Math.round(max * i / 4).toLocaleString('en-ZA')}`;
+        svg.appendChild(label);
+      }
+      const coords = points.map((point, index) => ({
+        x: points.length === 1 ? (left + right) / 2 : left + index * (right - left) / (points.length - 1),
+        y: bottom - (point.amount / max) * (bottom - top),
+        ...point
+      }));
+      const path = make('path', {
+        d: coords.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' '),
+        fill: 'none', stroke: '#34d399', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+        pathLength: 1, class: 'sales-line-path'
+      });
+      svg.appendChild(path);
+      coords.forEach(point => {
+        const dot = make('circle', { cx: point.x, cy: point.y, r: 4, fill: '#34d399', stroke: '#171717', 'stroke-width': 2 });
+        const title = make('title');
+        title.textContent = `${point.label}: ${formatMoney(point.amount)}`;
+        dot.appendChild(title);
+        svg.appendChild(dot);
+      });
+      const labelCount = Math.min(coords.length, 7);
+      for (let i = 0; i < labelCount; i += 1) {
+        const index = labelCount === 1 ? 0 : Math.round(i * (coords.length - 1) / (labelCount - 1));
+        const point = coords[index];
+        const label = make('text', { x: point.x, y: 202, 'text-anchor': 'middle', fill: '#737373', 'font-size': 10 });
+        label.textContent = point.label;
+        svg.appendChild(label);
+      }
+      svg.setAttribute('aria-label', `Paid revenue trend for ${periodLabel}`);
+      requestAnimationFrame(() => path.classList.add('is-visible'));
+    }
+
+    function renderSalesPieChart(includedSales, formatMoney) {
+      const svg = document.getElementById('sales-pie-chart');
+      const legend = document.getElementById('sales-pie-legend');
+      const empty = document.getElementById('sales-pie-empty');
+      svg.replaceChildren();
+      legend.replaceChildren();
+      const groups = new Map();
+      includedSales.forEach(sale => {
+        const name = String(sale.productName || sale.product_name || sale.name || 'Sale').trim() || 'Sale';
+        const amount = Number(sale.amount) || 0;
+        if (amount > 0) groups.set(name, (groups.get(name) || 0) + amount);
+      });
+      const entries = [...groups.entries()].sort((a, b) => b[1] - a[1]);
+      const total = entries.reduce((sum, entry) => sum + entry[1], 0);
+      empty.classList.toggle('hidden', total > 0);
+      if (!total) return;
+      const colors = ['#34d399', '#60a5fa', '#fbbf24', '#f472b6', '#a78bfa', '#fb7185', '#22d3ee', '#a3e635'];
+      let offset = 0;
+      entries.forEach(([name, amount], index) => {
+        const percent = amount / total * 100;
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '60');
+        circle.setAttribute('cy', '60');
+        circle.setAttribute('r', '45');
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', colors[index % colors.length]);
+        circle.setAttribute('stroke-width', '30');
+        circle.setAttribute('pathLength', '100');
+        circle.setAttribute('stroke-dasharray', `${percent} ${100 - percent}`);
+        circle.setAttribute('stroke-dashoffset', String(-offset));
+        circle.setAttribute('class', 'sales-pie-slice');
+        circle.style.setProperty('--slice-offset', String(-offset));
+        svg.appendChild(circle);
+        offset += percent;
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2';
+        const nameEl = document.createElement('span');
+        nameEl.className = 'flex min-w-0 items-center gap-2 text-neutral-300';
+        const swatch = document.createElement('span');
+        swatch.className = 'h-2.5 w-2.5 shrink-0 rounded-full';
+        swatch.style.backgroundColor = colors[index % colors.length];
+        const label = document.createElement('span');
+        label.className = 'truncate';
+        label.textContent = name;
+        nameEl.append(swatch, label);
+        const value = document.createElement('span');
+        value.className = 'shrink-0 text-neutral-400';
+        value.textContent = `${formatMoney(amount)} (${percent.toFixed(1)}%)`;
+        row.append(nameEl, value);
+        legend.appendChild(row);
+      });
+      svg.setAttribute('aria-label', `Paid sales mix totaling ${formatMoney(total)}`);
+      requestAnimationFrame(() => svg.querySelectorAll('.sales-pie-slice').forEach(slice => slice.classList.add('is-visible')));
+    }
+
     function renderSalesSummary() {
       const periodSelect = document.getElementById('sales-period');
       if (!periodSelect) return;
@@ -1466,17 +2119,18 @@
       const endDate = new Date(now);
       endDate.setHours(0, 0, 0, 0);
       endDate.setDate(endDate.getDate() + 1);
+      const paidSales = getPaidSales();
       const datedSales = [];
       const undatedSales = [];
 
-      salesHistory.forEach(sale => {
+      paidSales.forEach(sale => {
         const amount = Number(sale.amount) || 0;
         const date = getSaleDate(sale);
-        (date ? datedSales : undatedSales).push({ amount, date });
+        (date ? datedSales : undatedSales).push({ ...sale, amount, date });
       });
 
       let startDate = null;
-      let includedSales = salesHistory.map(sale => ({ amount: Number(sale.amount) || 0 }));
+      let includedSales = [...datedSales, ...undatedSales];
       const labels = {
         '7': 'Last 7 days',
         '30': 'Last 30 days',
@@ -1496,7 +2150,7 @@
       const recordCount = includedSales.length;
       const formatMoney = amount => `R ${amount.toFixed(2)}`;
       document.getElementById('summary-revenue').textContent = formatMoney(total);
-      document.getElementById('summary-records').textContent = recordCount;
+      document.getElementById('summary-records').textContent = recordCount.toLocaleString();
       document.getElementById('summary-average').textContent = formatMoney(recordCount ? total / recordCount : 0);
       document.getElementById('sales-chart-period').textContent = labels[period] || labels['30'];
       document.getElementById('sales-chart-note').classList.toggle('hidden', period === 'all' || undatedSales.length === 0);
@@ -1553,6 +2207,9 @@
         }
       }
 
+      renderSalesLineChart(buckets, formatMoney, labels[period] || labels['30']);
+      renderSalesPieChart(includedSales, formatMoney);
+
       const chart = document.getElementById('sales-chart');
       const emptyState = document.getElementById('sales-chart-empty');
       chart.replaceChildren();
@@ -1569,7 +2226,7 @@
           value.textContent = bucket.amount > 0 ? `R ${Math.round(bucket.amount).toLocaleString('en-ZA')}` : '';
 
           const bar = document.createElement('div');
-          bar.className = 'w-8 rounded-t bg-emerald-400/90 transition-all duration-300';
+          bar.className = 'sales-bar w-8 rounded-t bg-emerald-400/90';
           bar.style.height = `${maxAmount > 0 ? Math.max(4, bucket.amount / maxAmount * 148) : 4}px`;
           bar.title = `${bucket.label}: ${formatMoney(bucket.amount)}`;
 
@@ -1579,6 +2236,7 @@
 
           column.append(value, bar, label);
           chart.appendChild(column);
+          requestAnimationFrame(() => bar.classList.add('is-visible'));
         });
       }
 
@@ -1587,8 +2245,10 @@
 
     // ADMIN DASHBOARD
     function renderAdminDashboard() {
+      const paidSales = getPaidSales();
+      totalRevenue = paidSales.reduce((sum, sale) => sum + (Number(sale.amount) || 0), 0);
       document.getElementById('metric-sales').textContent = `R ${totalRevenue.toFixed(2)}`;
-      document.getElementById('metric-orders').textContent = salesHistory.length;
+      document.getElementById('metric-orders').textContent = paidSales.length.toLocaleString();
       document.getElementById('metric-inbox').textContent = contactMessages.length;
       document.getElementById('inbox-count-badge').textContent = `${contactMessages.length} Messages`;
       renderSalesSummary();
@@ -1716,12 +2376,16 @@
         salesHistory.forEach(s => {
           const div = document.createElement('div');
           div.className = 'flex justify-between items-center bg-neutral-950 p-2.5 rounded border border-neutral-800/60';
+          const status = String(s.status || 'paid').toLowerCase();
+          const statusLabel = s.status ? status : 'unverified legacy';
+          const amount = Number(s.amount) || 0;
+          const isPaid = isPaidSale(s);
           div.innerHTML = `
             <div>
               <span class="font-bold text-white">${s.qty}x ${s.productName}</span>
-              <span class="text-neutral-500 block text-[10px]">${s.date}</span>
+              <span class="text-neutral-500 block text-[10px]">${s.date || 'No date'} · ${statusLabel}</span>
             </div>
-            <span class="font-extrabold text-emerald-400">+R ${s.amount.toFixed(2)}</span>
+            <span class="font-extrabold ${isPaid ? 'text-emerald-400' : 'text-neutral-500'}">${isPaid ? '+' : ''}R ${amount.toFixed(2)}</span>
           `;
           salesLog.appendChild(div);
         });
@@ -1782,8 +2446,14 @@
       }
     }
 
-    function removeProduct(id) {
+    async function removeProduct(id) {
       if (!confirm('Are you sure you want to remove this garment from catalog?')) return;
+      if (!isStoreAdmin || !sdSupabase) return;
+      const { error } = await sdSupabase.from('product_comments').delete().eq('product_id', id);
+      if (error) {
+        alert(`Could not remove this product's comments: ${error.message}`);
+        return;
+      }
       products = products.filter(p => p.id !== id);
       productComments = productComments.filter(comment => comment.productId !== id);
       for (const cartKey of cart.keys()) {
