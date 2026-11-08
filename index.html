@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steeze District | Streetwear & Archive Fashion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background-color: #0d0d0d;
+      color: #f5f5f5;
+    }
+    .hero-bg {
+      background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(13,13,13,0.95) 100%),
+                  url('https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+    }
+    #store-hero {
+      max-height: 1200px;
+      overflow: hidden;
+      transition: max-height 420ms ease, opacity 260ms ease;
+    }
+    #store-hero.is-dismissed {
+      max-height: 0;
+      height: 0;
+      min-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-bottom-width: 0;
+      opacity: 0;
+      visibility: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #171717;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 3px;
+    }
+    .product-card {
+      opacity: 0;
+      animation: product-enter 420ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    }
+    .cart-item-enter {
+      animation: product-enter 260ms ease-out both;
+    }
+    @keyframes product-enter {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #contact-modal::backdrop,
+    #admin-login-modal::backdrop {
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(5px);
+    }
+    #contact-modal[open],
+    #admin-login-modal[open] {
+      animation: modal-enter 220ms ease-out both;
+    }
+    @keyframes modal-enter {
+      from { opacity: 0; transform: translateY(12px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-white selection:text-black">
+
+  <!-- Top Announcement Bar -->
+  <div class="bg-white text-black text-xs font-bold py-1.5 text-center tracking-widest uppercase">
+    MAY THE SWAG BE WITH YOU
+  </div>
+
+  <!-- Header / Navigation -->
+  <header class="sticky top-0 z-40 bg-black/90 backdrop-blur-md border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo / Crest -->
+      <div class="flex items-center space-x-8">
+        <button onclick="showHome()" class="flex items-center space-x-3 text-left" aria-label="Go to home">
+          <div class="w-10 h-10 bg-neutral-900 border border-neutral-700 rounded flex items-center justify-center overflow-hidden">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </div>
+        </button>
+
+        <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-neutral-400">
+          <button onclick="showHome()" class="hover:text-white transition-colors">Home</button>
+          
+          <!-- Catalog Dropdown -->
+          <div class="relative group">
+            <button class="hover:text-white transition-colors flex items-center gap-1 py-2">
+              Catalog
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="absolute left-0 top-full hidden group-hover:block w-48 bg-neutral-900 border border-neutral-800 rounded-lg shadow-2xl py-2 z-50">
+              <button onclick="switchView('store'); filterCategory('all')" class="w-full text-left px-4 py-2 text-xs uppercase font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">All Items</button>
+              <button onclick="switchView('store'); filterCategory('Shirts')" class="w-full text-left px-4 py-2 text-xs uppercase font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">Shirts</button>
+              <button onclick="switchView('store'); filterCategory('Pants')" class="w-full text-left px-4 py-2 text-xs uppercase font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">Pants</button>
+              <button onclick="switchView('store'); filterCategory('Shoes')" class="w-full text-left px-4 py-2 text-xs uppercase font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">Shoes</button>
+              <button onclick="switchView('store'); filterCategory('Socks')" class="w-full text-left px-4 py-2 text-xs uppercase font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">Socks</button>
+              <button onclick="switchView('store'); filterCategory('Accessories')" class="w-full text-left px-4 py-2 text-xs uppercase font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">Accessories</button>
+              <button onclick="switchView('store'); filterCategory('Combo Fits')" class="w-full text-left px-4 py-2 text-xs uppercase font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">Combo Fits</button>
+            </div>
+          </div>
+
+          <button onclick="openContactModal()" class="hover:text-white transition-colors">Contact</button>
+        </nav>
+      </div>
+
+      <!-- Actions (Search, Profile, Cart) -->
+      <div class="flex items-center space-x-5">
+        <button onclick="toggleSearch()" class="p-2 text-neutral-400 hover:text-white transition-colors" aria-label="Search">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </button>
+
+        <button onclick="promptAdminLogin()" class="flex items-center gap-2 p-2 text-neutral-400 hover:text-white transition-colors" aria-label="Login">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <span class="text-xs font-bold uppercase">Login</span>
+        </button>
+
+        <button onclick="toggleCart()" class="p-2 text-neutral-400 hover:text-white transition-colors relative" aria-label="Cart">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+          <span id="cart-badge" class="absolute top-0 right-0 bg-white text-black font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center scale-0 transition-transform">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Search Overlay Bar -->
+    <div id="search-bar" class="hidden border-t border-neutral-800 bg-neutral-900 px-4 py-3">
+      <div class="max-w-3xl mx-auto flex items-center gap-3">
+        <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="search-input" oninput="handleSearch()" placeholder="Search puffer jackets, thermals, hoodies..." class="w-full bg-transparent text-white focus:outline-none text-sm placeholder-neutral-500">
+        <button onclick="toggleSearch()" class="text-xs text-neutral-400 hover:text-white">CLOSE</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- STOREFRONT VIEW -->
+  <main id="storefront-view" class="flex-grow">
+    
+    <!-- Hero Banner Section -->
+    <section id="store-hero" class="hero-bg h-[70vh] min-h-[450px] flex items-end pb-16 px-6 relative border-b border-neutral-800">
+      <div class="max-w-7xl mx-auto w-full">
+        <div>
+          <h1 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white mb-4 drop-shadow-lg">
+            Welcome to Steeze District
+          </h1>
+          <p class="text-neutral-300 max-w-md text-sm sm:text-base font-medium">
+            Archive streetwear & curated garments. Exclusive drops available until stock depletes.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <nav aria-label="Shop by category" class="border-b border-neutral-800 bg-neutral-950">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center gap-2 overflow-x-auto">
+        <button onclick="filterCategory('all')" class="cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-white bg-white text-black transition-colors" data-cat="all">Shop All</button>
+        <button onclick="filterCategory('Shirts')" class="cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors" data-cat="Shirts">Shirts</button>
+        <button onclick="filterCategory('Pants')" class="cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors" data-cat="Pants">Pants</button>
+        <button onclick="filterCategory('Shoes')" class="cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors" data-cat="Shoes">Shoes</button>
+        <button onclick="filterCategory('Socks')" class="cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors" data-cat="Socks">Socks</button>
+        <button onclick="filterCategory('Accessories')" class="cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors" data-cat="Accessories">Accessories</button>
+        <button onclick="filterCategory('Combo Fits')" class="cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors" data-cat="Combo Fits">Combo Fits</button>
+      </div>
+    </nav>
+
+    <!-- Product Catalog Section -->
+    <section id="products-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      
+      <div class="mb-10 border-b border-neutral-800 pb-6">
+        <h2 id="catalog-title" class="text-3xl font-black uppercase tracking-wide text-white">Products</h2>
+        
+        <!-- Shop All / Catalog Filter Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-6">
+          <div class="flex items-center space-x-4 text-xs font-bold text-neutral-400 uppercase">
+            <div class="relative group">
+              <button class="flex items-center gap-1 hover:text-white py-1">Availability <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+            </div>
+            <div class="relative group">
+              <button class="flex items-center gap-1 hover:text-white py-1">Price <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-6 text-xs text-neutral-400 font-bold uppercase">
+            <span id="product-count">7 items</span>
+            <div class="flex items-center space-x-2">
+              <span>Sort by</span>
+              <select id="sort-select" onchange="handleSort()" class="bg-neutral-900 border border-neutral-800 text-white rounded p-1 text-xs focus:outline-none">
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+              </select>
+            </div>
+            <div class="hidden sm:flex items-center space-x-1 border border-neutral-800 rounded p-1">
+              <button class="p-1 text-white bg-neutral-800 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ADMIN DASHBOARD VIEW (Alt Site Mode) -->
+  <main id="admin-view" class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full hidden">
+    
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-neutral-800 pb-6">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h1 class="text-3xl font-black uppercase">Store Manager Dashboard</h1>
+        </div>
+        <p class="text-neutral-400 text-sm mt-1">Manage inventory, monitor sales, and check customer messages.</p>
+      </div>
+
+      <!-- Quick Metrics Cards -->
+      <div class="flex gap-4">
+        <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-lg min-w-[130px]">
+          <span class="text-neutral-500 text-xs font-semibold uppercase block">Total Sales</span>
+          <span id="metric-sales" class="text-xl font-bold text-emerald-400">R 0.00</span>
+        </div>
+        <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-lg min-w-[130px]">
+          <span class="text-neutral-500 text-xs font-semibold uppercase block">Orders</span>
+          <span id="metric-orders" class="text-xl font-bold text-white">0</span>
+        </div>
+        <div class="bg-neutral-900 border border-neutral-800 p-4 rounded-lg min-w-[130px]">
+          <span class="text-neutral-500 text-xs font-semibold uppercase block">Inbox</span>
+          <span id="metric-inbox" class="text-xl font-bold text-sky-400">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div role="tablist" aria-label="Admin sections" class="mb-8 flex gap-2 border-b border-neutral-800">
+      <button id="admin-summary-tab" type="button" role="tab" aria-selected="true" aria-controls="admin-summary-panel" onclick="switchAdminTab('summary')" class="border-b-2 border-white px-4 py-3 text-xs font-bold uppercase text-white">Summary</button>
+      <button id="admin-management-tab" type="button" role="tab" aria-selected="false" aria-controls="admin-management-panel" onclick="switchAdminTab('management')" class="border-b-2 border-transparent px-4 py-3 text-xs font-bold uppercase text-neutral-500 hover:text-white">Store Management</button>
+    </div>
+
+    <section id="admin-summary-panel" role="tabpanel" aria-labelledby="admin-summary-tab" class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Reporting</p>
+          <h2 class="mt-1 text-2xl font-black uppercase">Sales Summary</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <label for="sales-period" class="text-xs font-bold uppercase text-neutral-400">Period</label>
+          <select id="sales-period" onchange="renderSalesSummary()" class="bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm text-white focus:outline-none focus:border-white">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Last 12 months</option>
+            <option value="all">All time</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-neutral-800 border-y border-neutral-800">
+        <div class="py-4 sm:px-5 sm:first:pl-0">
+          <p class="text-[10px] font-bold uppercase text-neutral-500">Revenue in period</p>
+          <p id="summary-revenue" class="mt-1 text-2xl font-bold text-emerald-400">R 0.00</p>
+        </div>
+        <div class="py-4 sm:px-5">
+          <p class="text-[10px] font-bold uppercase text-neutral-500">Sales records</p>
+          <p id="summary-records" class="mt-1 text-2xl font-bold">0</p>
+        </div>
+        <div class="py-4 sm:px-5">
+          <p class="text-[10px] font-bold uppercase text-neutral-500">Average record</p>
+          <p id="summary-average" class="mt-1 text-2xl font-bold">R 0.00</p>
+        </div>
+      </div>
+
+      <section class="border border-neutral-800 bg-neutral-900 p-4 sm:p-6" aria-labelledby="sales-chart-title">
+        <div class="mb-5 flex items-center justify-between gap-4">
+          <h3 id="sales-chart-title" class="text-sm font-bold uppercase">Revenue over time</h3>
+          <span id="sales-chart-period" class="text-[10px] font-bold uppercase text-neutral-500">Last 30 days</span>
+        </div>
+        <div id="sales-chart" role="img" aria-label="Sales revenue bar chart" class="flex min-h-[248px] items-end gap-3 overflow-x-auto pb-2"></div>
+        <p id="sales-chart-empty" class="hidden py-8 text-center text-sm text-neutral-500">No sales recorded for this period.</p>
+        <p id="sales-chart-note" class="hidden mt-4 border-t border-neutral-800 pt-3 text-xs text-neutral-500">Undated legacy sales are included in All Time only.</p>
+      </section>
+    </section>
+
+    <div id="admin-management-panel" role="tabpanel" aria-labelledby="admin-management-tab" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Add New Product Form -->
+      <div class="bg-neutral-900 border border-neutral-800 p-6 rounded-xl self-start">
+        <h2 class="text-lg font-bold uppercase mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Add New Garment
+        </h2>
+
+        <form id="add-product-form" onsubmit="handleAddProduct(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase mb-1">Product Name</label>
+            <input type="text" id="admin-name" required placeholder="e.g. Fur puffer jacket" class="w-full bg-neutral-800 border border-neutral-700 rounded p-2.5 text-sm text-white focus:outline-none focus:border-white">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-neutral-400 uppercase mb-1">Category</label>
+              <select id="admin-category" required class="w-full bg-neutral-800 border border-neutral-700 rounded p-2.5 text-sm text-white focus:outline-none focus:border-white">
+                <option value="Shirts">Shirts</option>
+                <option value="Pants">Pants</option>
+                <option value="Shoes">Shoes</option>
+                <option value="Socks">Socks</option>
+                <option value="Accessories">Accessories</option>
+                <option value="Combo Fits">Combo Fits</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-neutral-400 uppercase mb-1">Price (ZAR / R)</label>
+              <input type="number" id="admin-price" min="0" step="100" required placeholder="2500.00" onblur="formatAdminPrice(this)" class="w-full bg-neutral-800 border border-neutral-700 rounded p-2.5 text-sm text-white focus:outline-none focus:border-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase mb-1">Initial Stock</label>
+            <input type="number" id="admin-stock" required min="0" placeholder="5" class="w-full bg-neutral-800 border border-neutral-700 rounded p-2.5 text-sm text-white focus:outline-none focus:border-white">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-neutral-400 uppercase mb-1">Image URL</label>
+            <input type="url" id="admin-image" required placeholder="https://..." class="w-full bg-neutral-800 border border-neutral-700 rounded p-2.5 text-sm text-white focus:outline-none focus:border-white">
+          </div>
+
+          <button type="submit" class="w-full bg-white text-black font-bold uppercase py-3 rounded text-xs tracking-wider hover:bg-neutral-200 transition-colors">
+            Publish Product
+          </button>
+        </form>
+      </div>
+
+      <!-- Inventory Management & Customer Inbox -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Inventory Table -->
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
+          <div class="p-4 border-b border-neutral-800 flex items-center justify-between">
+            <h2 class="font-bold uppercase text-sm">Inventory & Stock Controls</h2>
+            <button onclick="switchView('store')" class="text-xs text-neutral-400 hover:text-white uppercase font-bold">Exit Admin Mode</button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-neutral-950 text-neutral-400 text-xs uppercase border-b border-neutral-800">
+                <tr>
+                  <th class="p-3.5">Product</th>
+                  <th class="p-3.5">Price</th>
+                  <th class="p-3.5">Stock Left</th>
+                  <th class="p-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-inventory-list" class="divide-y divide-neutral-800">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Customer Inquiries / Contact Messages Inbox -->
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <h3 class="font-bold uppercase text-sm mb-3 flex items-center justify-between">
+            <span>Customer Contact Inbox</span>
+            <span id="inbox-count-badge" class="bg-sky-500 text-black text-[10px] px-2 py-0.5 rounded-full font-black">0 New</span>
+          </h3>
+          <div id="admin-inbox-list" class="space-y-3 max-h-56 overflow-y-auto custom-scrollbar text-xs">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <h3 class="font-bold uppercase text-sm mb-3 flex items-center justify-between">
+            <span>Email Signups</span>
+            <span id="email-signup-count" class="text-[10px] text-neutral-500">0</span>
+          </h3>
+          <div id="admin-email-list" class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar text-xs" aria-live="polite"></div>
+        </div>
+
+        <!-- Recent Sales Log -->
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <h3 class="font-bold uppercase text-sm mb-3">Recent Sales History</h3>
+          <div id="sales-log" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar text-xs">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- CART SLIDE-OUT DRAWER -->
+  <div id="cart-drawer" class="fixed inset-0 z-50 pointer-events-none" aria-hidden="true">
+    <div id="cart-backdrop" onclick="toggleCart()" class="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+    
+    <div id="cart-panel" role="dialog" aria-modal="true" aria-label="Your cart" class="absolute right-0 top-0 bottom-0 w-full max-w-md bg-neutral-900 border-l border-neutral-800 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out pointer-events-none flex flex-col">
+      
+      <div class="p-5 border-b border-neutral-800 flex items-center justify-between">
+        <h3 class="font-bold text-lg uppercase tracking-wide flex items-center gap-2">
+          <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+          Your Cart
+        </h3>
+        <button onclick="toggleCart()" class="p-2 text-neutral-400 hover:text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="cart-items-container" class="flex-grow p-5 overflow-y-auto custom-scrollbar space-y-4">
+        <!-- Cart Items with Pictures loaded dynamically -->
+      </div>
+
+      <div class="p-5 border-t border-neutral-800 bg-neutral-950 space-y-4">
+        <div class="flex items-center justify-between text-base font-bold">
+          <span class="uppercase">Total:</span>
+          <span id="cart-total" class="text-xl">R 0.00</span>
+        </div>
+        <button onclick="handleCheckout()" id="checkout-btn" class="w-full bg-white text-black font-extrabold uppercase py-3.5 tracking-widest text-xs hover:bg-neutral-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+          Complete Purchase
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN LOGIN MODAL -->
+  <dialog id="admin-login-modal" class="bg-neutral-950 text-white border border-neutral-800 p-6 w-[calc(100%-2rem)] max-w-sm">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold uppercase tracking-wide">Login</h3>
+      <button type="button" onclick="closeModal('admin-login-modal')" class="p-2 text-neutral-400 hover:text-white" aria-label="Close">✕</button>
+    </div>
+    <form id="admin-login-form" onsubmit="handleAdminLogin(event)" class="space-y-4" novalidate>
+      <label for="admin-passcode" class="block text-xs font-bold uppercase text-neutral-400">Email address</label>
+      <input id="admin-passcode" type="text" inputmode="email" autocomplete="email" aria-describedby="admin-login-error admin-login-status" class="w-full bg-neutral-900 border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-white" placeholder="Enter your email">
+      <p id="admin-login-error" class="hidden text-xs text-red-400" role="alert">Please enter a valid email address.</p>
+      <p id="admin-login-status" class="hidden text-xs text-emerald-400" role="status">Email saved.</p>
+      <button type="submit" class="w-full bg-white text-black font-extrabold uppercase py-3 tracking-wider text-xs hover:bg-neutral-200 transition-colors">Continue</button>
+    </form>
+  </dialog>
+
+  <!-- CONTACT MODAL -->
+  <dialog id="contact-modal" class="bg-white text-black border-0 p-6 sm:p-8 w-[calc(100%-2rem)] max-w-2xl shadow-2xl">
+    <div class="flex justify-between items-center mb-6 sm:mb-8">
+      <h3 class="font-bold text-3xl sm:text-4xl">Contact</h3>
+      <button onclick="closeModal('contact-modal')" class="text-neutral-500 hover:text-black p-2" aria-label="Close contact form">✕</button>
+    </div>
+
+    <form id="contact-form" onsubmit="handleContactSubmit(event)" class="space-y-3.5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="sr-only" for="contact-name">Name</label>
+          <input type="text" id="contact-name" required placeholder="Name" class="w-full bg-white border border-neutral-300 p-4 text-sm text-black placeholder-neutral-500 focus:outline-none focus:border-black">
+        </div>
+        <div>
+          <label class="sr-only" for="contact-email">Email</label>
+          <input type="email" id="contact-email" required placeholder="Email" class="w-full bg-white border border-neutral-300 p-4 text-sm text-black placeholder-neutral-500 focus:outline-none focus:border-black">
+        </div>
+      </div>
+
+      <div>
+        <label class="sr-only" for="contact-phone">Phone</label>
+        <input type="tel" id="contact-phone" placeholder="Phone" class="w-full bg-white border border-neutral-300 p-4 text-sm text-black placeholder-neutral-500 focus:outline-none focus:border-black">
+      </div>
+
+      <div>
+        <label class="sr-only" for="contact-comment">Comment</label>
+        <textarea id="contact-comment" rows="7" required placeholder="Comment" class="w-full resize-y bg-white border border-neutral-300 p-4 text-sm text-black placeholder-neutral-500 focus:outline-none focus:border-black"></textarea>
+      </div>
+
+      <button type="submit" class="bg-black text-white font-extrabold uppercase px-8 py-3.5 tracking-wider text-xs hover:bg-neutral-800 transition-colors">
+        Send Message
+      </button>
+    </form>
+  </dialog>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-neutral-800 bg-black py-8">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-600">
+      <p>© 2026 STEEZE DISTRICT. ALL RIGHTS RESERVED.</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    const defaultProducts = [
+      {
+        id: 'p1',
+        name: 'Fur puffer jacket',
+        category: 'Shirts',
+        price: 2500.00,
+        stock: 4,
+        image: 'https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=600&q=80'
+      },
+      {
+        id: 'p2',
+        name: 'White Archive Ribbed Thermal',
+        category: 'Shirts',
+        price: 850.00,
+        stock: 3,
+        image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80'
+      },
+      {
+        id: 'p3',
+        name: 'Long-Sleeve Archive Thermal',
+        category: 'Shirts',
+        price: 800.00,
+        stock: 2,
+        image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=600&q=80'
+      },
+      {
+        id: 'p4',
+        name: 'Black Script Thermal Top',
+        category: 'Shirts',
+        price: 800.00,
+        stock: 0,
+        image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=600&q=80'
+      },
+      {
+        id: 'p5',
+        name: 'Steeze District Cargo Pants',
+        category: 'Pants',
+        price: 1200.00,
+        stock: 5,
+        image: 'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&w=600&q=80'
+      },
+      {
+        id: 'p6',
+        name: 'Archive High-Top Sneakers',
+        category: 'Shoes',
+        price: 3200.00,
+        stock: 3,
+        image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=600&q=80'
+      },
+      {
+        id: 'p7',
+        name: 'Distressed Full Fit Combo',
+        category: 'Combo Fits',
+        price: 4500.00,
+        stock: 2,
+        image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=600&q=80'
+      }
+    ];
+
+    let products = [];
+    let cart = new Map();
+    let salesHistory = [];
+    let contactMessages = [];
+    let emailSignups = [];
+    let totalRevenue = 0;
+    let currentView = 'store';
+    let currentCategory = 'all';
+    let currentSort = 'featured';
+
+    const syncChannel = new BroadcastChannel('steeze_district_sync');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      renderStorefront();
+      renderAdminDashboard();
+      updateCartUI();
+
+      // Secret Admin Hotkey Ctrl + Shift + S
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !document.getElementById('cart-drawer').classList.contains('pointer-events-none')) {
+          toggleCart();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          promptAdminLogin();
+        }
+      });
+
+      syncChannel.onmessage = (event) => {
+        if (event.data.type === 'STATE_UPDATED') {
+          loadState();
+          renderStorefront();
+          renderAdminDashboard();
+          updateCartUI();
+        }
+      };
+    });
+
+    function saveState() {
+      localStorage.setItem('sd_products', JSON.stringify(products));
+      localStorage.setItem('sd_sales', JSON.stringify(salesHistory));
+      localStorage.setItem('sd_messages', JSON.stringify(contactMessages));
+      localStorage.setItem('sd_email_signups', JSON.stringify(emailSignups));
+      localStorage.setItem('sd_revenue', totalRevenue.toString());
+      syncChannel.postMessage({ type: 'STATE_UPDATED' });
+    }
+
+    function loadState() {
+      const storedProducts = localStorage.getItem('sd_products');
+      products = storedProducts ? JSON.parse(storedProducts) : defaultProducts;
+
+      const keosImageUpdated = localStorage.getItem('sd_keos_dihh_gigachad_image_v2');
+      const keosProduct = products.find(product => product.name.trim().toLowerCase() === 'keos dihh');
+      if (keosProduct && !keosImageUpdated) {
+        keosProduct.image = 'https://dudewipes.com/cdn/shop/articles/gigachad.jpg?v=1667928905&width=2048';
+        keosProduct.imageCredit = 'DUDE Wipes';
+        keosProduct.imageSource = 'https://dudewipes.com/blogs/dude-blog/giga-chad-meme';
+        delete keosProduct.imageLicense;
+        localStorage.setItem('sd_products', JSON.stringify(products));
+        localStorage.setItem('sd_keos_dihh_gigachad_image_v2', 'true');
+        syncChannel.postMessage({ type: 'STATE_UPDATED' });
+      }
+
+      const storedSales = localStorage.getItem('sd_sales');
+      salesHistory = storedSales ? JSON.parse(storedSales) : [];
+
+      const storedMsgs = localStorage.getItem('sd_messages');
+      contactMessages = storedMsgs ? JSON.parse(storedMsgs) : [];
+
+      const storedEmails = localStorage.getItem('sd_email_signups');
+      emailSignups = storedEmails ? JSON.parse(storedEmails) : [];
+
+      const storedRev = localStorage.getItem('sd_revenue');
+      totalRevenue = storedRev ? parseFloat(storedRev) : 0;
+    }
+
+    function promptAdminLogin() {
+      const loginModal = document.getElementById('admin-login-modal');
+      document.getElementById('admin-login-error').classList.add('hidden');
+      document.getElementById('admin-login-status').classList.add('hidden');
+      document.getElementById('admin-passcode').value = '';
+      loginModal.showModal();
+      document.getElementById('admin-passcode').focus();
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const entry = document.getElementById('admin-passcode').value.trim();
+      const error = document.getElementById('admin-login-error');
+      const status = document.getElementById('admin-login-status');
+      error.classList.add('hidden');
+      status.classList.add('hidden');
+
+      if (entry === '22e4') {
+        closeModal('admin-login-modal');
+        switchView('admin');
+        return;
+      }
+
+      const emailPattern = /^[^\s@]+@[^\s@]+(?:\.[^\s@]+)+$/;
+      if (!emailPattern.test(entry)) {
+        error.classList.remove('hidden');
+        document.getElementById('admin-passcode').select();
+        return;
+      }
+
+      const normalizedEmail = entry.toLowerCase();
+      const alreadySaved = emailSignups.some(signup => signup.email.toLowerCase() === normalizedEmail);
+      if (!alreadySaved) {
+        emailSignups.unshift({ email: entry, date: new Date().toLocaleString() });
+        saveState();
+        renderAdminDashboard();
+      }
+      document.getElementById('admin-passcode').value = '';
+      status.classList.remove('hidden');
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.getElementById('storefront-view').classList.toggle('hidden', view !== 'store');
+      document.getElementById('admin-view').classList.toggle('hidden', view !== 'admin');
+
+      if (view === 'admin') {
+        renderAdminDashboard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        renderStorefront();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function showHome() {
+      switchView('store');
+      filterCategory('all', true);
+    }
+
+    function filterCategory(category, showBanner = false) {
+      currentCategory = category;
+      document.getElementById('store-hero').classList.toggle('is-dismissed', !showBanner);
+      
+      document.querySelectorAll('.cat-pill').forEach(pill => {
+        const isMatch = pill.getAttribute('data-cat') === category;
+        if (isMatch) {
+          pill.className = 'cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-white bg-white text-black transition-colors';
+        } else {
+          pill.className = 'cat-pill shrink-0 px-4 py-2 text-xs font-bold uppercase border border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500 transition-colors';
+        }
+      });
+
+      const titleEl = document.getElementById('catalog-title');
+      if (titleEl) {
+        titleEl.textContent = category === 'all' ? 'Products' : category;
+      }
+
+      renderStorefront();
+    }
+
+    function handleSort() {
+      currentSort = document.getElementById('sort-select').value;
+      renderStorefront();
+    }
+
+    function renderStorefront() {
+      const grid = document.getElementById('product-grid');
+      const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase();
+      grid.innerHTML = '';
+
+      let filtered = products.filter(p => {
+        const matchesCategory = currentCategory === 'all' || (p.category && p.category.toLowerCase() === currentCategory.toLowerCase());
+        const matchesSearch = p.name.toLowerCase().includes(searchVal);
+        return matchesCategory && matchesSearch;
+      });
+
+      // Sorting
+      if (currentSort === 'price-low') {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (currentSort === 'price-high') {
+        filtered.sort((a, b) => b.price - a.price);
+      }
+
+      document.getElementById('product-count').textContent = `${filtered.length} items`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-12 text-center text-neutral-500 uppercase font-bold text-sm">No items found in this category.</div>`;
+        return;
+      }
+
+      filtered.forEach(p => {
+        const isSoldOut = p.stock <= 0;
+        const isLowStock = p.stock > 0 && p.stock <= 3;
+
+        const card = document.createElement('div');
+        card.className = 'product-card group flex flex-col justify-between';
+        card.style.animationDelay = `${Math.min(grid.children.length, 7) * 55}ms`;
+        
+        card.innerHTML = `
+          <div>
+            <div class="relative aspect-[3/4] bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden mb-4">
+              <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ${isSoldOut ? 'opacity-40 grayscale' : ''}" onerror="this.src='https://placehold.co/400x500/171717/ffffff?text=Garment'">
+              
+              <div class="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+                ${isSoldOut ? `<span class="bg-neutral-800 text-neutral-400 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border border-neutral-700">Sold out</span>` : ''}
+                ${isLowStock ? `<span class="bg-red-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full animate-pulse shadow-lg">⚡ Only ${p.stock} left in stock</span>` : ''}
+              </div>
+            </div>
+
+            <span class="text-[10px] font-bold uppercase tracking-wider text-neutral-500">${p.category || 'Garment'}</span>
+            <h3 class="font-bold text-base text-white group-hover:text-neutral-300 transition-colors">${p.name}</h3>
+            <p class="text-sm font-semibold text-neutral-400 mt-1">R ${p.price.toFixed(2)}</p>
+            ${p.imageCredit ? `<p class="mt-1 text-[10px] text-neutral-500">Image: <a href="${p.imageSource}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">${p.imageCredit}</a>${p.imageLicense ? ` · <a href="${p.imageLicense}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">CC BY-SA 3.0</a>` : ''}</p>` : ''}
+          </div>
+
+          <button onclick="addToCart('${p.id}')" ${isSoldOut ? 'disabled' : ''} class="mt-4 w-full border border-white/20 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white hover:text-black transition-all disabled:opacity-20 disabled:cursor-not-allowed">
+            ${isSoldOut ? 'Sold Out' : 'Add to Cart'}
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function addToCart(productId) {
+      const product = products.find(p => p.id === productId);
+      if (!product || product.stock <= 0) return;
+
+      const currentQty = cart.get(productId) || 0;
+      if (currentQty + 1 > product.stock) {
+        alert(`Cannot add more. Only ${product.stock} items remaining in stock!`);
+        return;
+      }
+
+      cart.set(productId, currentQty + 1);
+      updateCartUI();
+      toggleCart(true);
+    }
+
+    function updateCartQty(productId, delta) {
+      const product = products.find(p => p.id === productId);
+      const currentQty = cart.get(productId) || 0;
+      const newQty = currentQty + delta;
+
+      if (newQty > product.stock) {
+        alert(`Only ${product.stock} items in stock!`);
+        return;
+      }
+
+      if (newQty <= 0) {
+        cart.delete(productId);
+      } else {
+        cart.set(productId, newQty);
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const container = document.getElementById('cart-items-container');
+      const badge = document.getElementById('cart-badge');
+      const totalEl = document.getElementById('cart-total');
+      const checkoutBtn = document.getElementById('checkout-btn');
+
+      container.innerHTML = '';
+      let total = 0;
+      let totalItemCount = 0;
+
+      if (cart.size === 0) {
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center text-neutral-500 space-y-3">
+            <svg class="w-12 h-12 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <p class="text-sm">Your cart is empty.</p>
+          </div>
+        `;
+        checkoutBtn.disabled = true;
+      } else {
+        checkoutBtn.disabled = false;
+        cart.forEach((qty, id) => {
+          const product = products.find(p => p.id === id);
+          if (!product) return;
+
+          total += product.price * qty;
+          totalItemCount += qty;
+
+          const itemEl = document.createElement('div');
+          itemEl.className = 'cart-item-enter flex items-center space-x-4 bg-neutral-950 p-3 rounded-lg border border-neutral-800';
+          itemEl.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" class="w-16 h-16 object-cover rounded bg-neutral-900 border border-neutral-800">
+            <div class="flex-grow">
+              <h4 class="text-xs font-bold text-white uppercase">${product.name}</h4>
+              <p class="text-xs text-neutral-400 mt-1">R ${product.price.toFixed(2)}</p>
+            </div>
+            <div class="flex items-center space-x-2 border border-neutral-800 rounded p-1">
+              <button onclick="updateCartQty('${id}', -1)" class="w-5 h-5 text-neutral-400 hover:text-white">-</button>
+              <span class="text-xs font-bold w-4 text-center">${qty}</span>
+              <button onclick="updateCartQty('${id}', 1)" class="w-5 h-5 text-neutral-400 hover:text-white">+</button>
+            </div>
+          `;
+          container.appendChild(itemEl);
+        });
+      }
+
+      totalEl.textContent = `R ${total.toFixed(2)}`;
+      badge.textContent = totalItemCount;
+      badge.classList.toggle('scale-0', totalItemCount === 0);
+    }
+
+    function toggleCart(forceOpen = false) {
+      const panel = document.getElementById('cart-panel');
+      const backdrop = document.getElementById('cart-backdrop');
+      const drawer = document.getElementById('cart-drawer');
+
+      const isOpen = !panel.classList.contains('translate-x-full');
+
+      if (forceOpen || !isOpen) {
+        drawer.classList.remove('pointer-events-none');
+        drawer.setAttribute('aria-hidden', 'false');
+        backdrop.classList.remove('pointer-events-none');
+        panel.classList.remove('pointer-events-none');
+        backdrop.classList.replace('opacity-0', 'opacity-100');
+        panel.classList.remove('translate-x-full');
+      } else {
+        backdrop.classList.replace('opacity-100', 'opacity-0');
+        backdrop.classList.add('pointer-events-none');
+        panel.classList.add('translate-x-full');
+        panel.classList.add('pointer-events-none');
+        drawer.classList.add('pointer-events-none');
+        drawer.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function handleCheckout() {
+      if (cart.size === 0) return;
+      alert('Gateway coming soon.');
+    }
+
+    // CONTACT FORM
+    function openContactModal() {
+      document.getElementById('contact-modal').showModal();
+    }
+
+    function handleContactSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('contact-name').value.trim();
+      const email = document.getElementById('contact-email').value.trim();
+      const phone = document.getElementById('contact-phone').value.trim();
+      const comment = document.getElementById('contact-comment').value.trim();
+
+      if (!name || !email || !comment) return;
+
+      const newMsg = {
+        id: 'm_' + Date.now(),
+        name,
+        email,
+        phone,
+        comment,
+        date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      contactMessages.unshift(newMsg);
+      saveState();
+      renderAdminDashboard();
+
+      document.getElementById('contact-form').reset();
+      closeModal('contact-modal');
+      alert('Message sent successfully!');
+    }
+
+    function switchAdminTab(tab) {
+      const showSummary = tab === 'summary';
+      const summaryPanel = document.getElementById('admin-summary-panel');
+      const managementPanel = document.getElementById('admin-management-panel');
+      const summaryTab = document.getElementById('admin-summary-tab');
+      const managementTab = document.getElementById('admin-management-tab');
+
+      summaryPanel.classList.toggle('hidden', !showSummary);
+      managementPanel.classList.toggle('hidden', showSummary);
+      summaryTab.setAttribute('aria-selected', String(showSummary));
+      managementTab.setAttribute('aria-selected', String(!showSummary));
+      summaryTab.className = `border-b-2 px-4 py-3 text-xs font-bold uppercase ${showSummary ? 'border-white text-white' : 'border-transparent text-neutral-500 hover:text-white'}`;
+      managementTab.className = `border-b-2 px-4 py-3 text-xs font-bold uppercase ${showSummary ? 'border-transparent text-neutral-500 hover:text-white' : 'border-white text-white'}`;
+    }
+
+    function getSaleDate(sale) {
+      const value = sale.timestamp || sale.createdAt || (sale.date && /\d{4}/.test(sale.date) ? sale.date : null);
+      if (!value) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function renderSalesSummary() {
+      const periodSelect = document.getElementById('sales-period');
+      if (!periodSelect) return;
+
+      const period = periodSelect.value;
+      const periodDays = Number(period);
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setHours(0, 0, 0, 0);
+      endDate.setDate(endDate.getDate() + 1);
+      const datedSales = [];
+      const undatedSales = [];
+
+      salesHistory.forEach(sale => {
+        const amount = Number(sale.amount) || 0;
+        const date = getSaleDate(sale);
+        (date ? datedSales : undatedSales).push({ amount, date });
+      });
+
+      let startDate = null;
+      let includedSales = salesHistory.map(sale => ({ amount: Number(sale.amount) || 0 }));
+      const labels = {
+        '7': 'Last 7 days',
+        '30': 'Last 30 days',
+        '90': 'Last 90 days',
+        '365': 'Last 12 months',
+        all: 'All time'
+      };
+
+      if (period !== 'all') {
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - periodDays + 1);
+        includedSales = datedSales.filter(sale => sale.date >= startDate && sale.date < endDate);
+      }
+
+      const total = includedSales.reduce((sum, sale) => sum + sale.amount, 0);
+      const recordCount = includedSales.length;
+      const formatMoney = amount => `R ${amount.toFixed(2)}`;
+      document.getElementById('summary-revenue').textContent = formatMoney(total);
+      document.getElementById('summary-records').textContent = recordCount;
+      document.getElementById('summary-average').textContent = formatMoney(recordCount ? total / recordCount : 0);
+      document.getElementById('sales-chart-period').textContent = labels[period] || labels['30'];
+      document.getElementById('sales-chart-note').classList.toggle('hidden', period === 'all' || undatedSales.length === 0);
+
+      const buckets = [];
+      const addBucket = (label, start, end) => {
+        const amount = datedSales
+          .filter(sale => sale.date >= start && sale.date < end)
+          .reduce((sum, sale) => sum + sale.amount, 0);
+        buckets.push({ label, amount });
+      };
+
+      if (period === 'all') {
+        if (datedSales.length > 0) {
+          const earliest = new Date(Math.min(...datedSales.map(sale => sale.date.getTime())));
+          const month = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+          const lastMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          while (month <= lastMonth) {
+            const nextMonth = new Date(month.getFullYear(), month.getMonth() + 1, 1);
+            addBucket(month.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }), month, nextMonth);
+            month.setMonth(month.getMonth() + 1);
+          }
+        }
+        if (undatedSales.length > 0) {
+          buckets.push({ label: 'Undated', amount: undatedSales.reduce((sum, sale) => sum + sale.amount, 0) });
+        }
+      } else if (period === '7') {
+        for (let day = 0; day < 7; day += 1) {
+          const dayStart = new Date(startDate);
+          dayStart.setDate(startDate.getDate() + day);
+          const nextDay = new Date(dayStart);
+          nextDay.setDate(nextDay.getDate() + 1);
+          addBucket(dayStart.toLocaleDateString(undefined, { weekday: 'short' }), dayStart, nextDay);
+        }
+      } else if (period === '365') {
+        const month = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+        for (let index = 0; index < 12; index += 1) {
+          const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+          const nextMonth = new Date(month.getFullYear(), month.getMonth() + 1, 1);
+          const bucketStart = monthStart < startDate ? startDate : monthStart;
+          const bucketEnd = nextMonth > endDate ? endDate : nextMonth;
+          addBucket(monthStart.toLocaleDateString(undefined, { month: 'short' }), bucketStart, bucketEnd);
+          month.setMonth(month.getMonth() + 1);
+        }
+      } else {
+        const weekCount = Math.ceil(periodDays / 7);
+        for (let week = 0; week < weekCount; week += 1) {
+          const weekStart = new Date(startDate);
+          weekStart.setDate(startDate.getDate() + week * 7);
+          const nextWeek = new Date(weekStart);
+          nextWeek.setDate(nextWeek.getDate() + 7);
+          const bucketEnd = nextWeek > endDate ? endDate : nextWeek;
+          addBucket(`Week ${week + 1}`, weekStart, bucketEnd);
+        }
+      }
+
+      const chart = document.getElementById('sales-chart');
+      const emptyState = document.getElementById('sales-chart-empty');
+      chart.replaceChildren();
+      emptyState.classList.toggle('hidden', recordCount > 0);
+
+      if (buckets.length > 0) {
+        const maxAmount = Math.max(...buckets.map(bucket => bucket.amount), 0);
+        buckets.forEach(bucket => {
+          const column = document.createElement('div');
+          column.className = 'flex h-56 w-14 shrink-0 flex-col items-center justify-end gap-2';
+
+          const value = document.createElement('span');
+          value.className = 'whitespace-nowrap text-[10px] text-neutral-400';
+          value.textContent = bucket.amount > 0 ? `R ${Math.round(bucket.amount).toLocaleString('en-ZA')}` : '';
+
+          const bar = document.createElement('div');
+          bar.className = 'w-8 rounded-t bg-emerald-400/90 transition-all duration-300';
+          bar.style.height = `${maxAmount > 0 ? Math.max(4, bucket.amount / maxAmount * 148) : 4}px`;
+          bar.title = `${bucket.label}: ${formatMoney(bucket.amount)}`;
+
+          const label = document.createElement('span');
+          label.className = 'max-w-14 truncate text-[10px] text-neutral-500';
+          label.textContent = bucket.label;
+
+          column.append(value, bar, label);
+          chart.appendChild(column);
+        });
+      }
+
+      chart.setAttribute('aria-label', `Revenue chart for ${labels[period] || labels['30']}: ${formatMoney(total)} total.`);
+    }
+
+    // ADMIN DASHBOARD
+    function renderAdminDashboard() {
+      document.getElementById('metric-sales').textContent = `R ${totalRevenue.toFixed(2)}`;
+      document.getElementById('metric-orders').textContent = salesHistory.length;
+      document.getElementById('metric-inbox').textContent = contactMessages.length;
+      document.getElementById('inbox-count-badge').textContent = `${contactMessages.length} Messages`;
+      renderSalesSummary();
+
+      // Inventory Table
+      const list = document.getElementById('admin-inventory-list');
+      list.innerHTML = '';
+
+      products.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-neutral-800/40 transition-colors';
+        tr.innerHTML = `
+          <td class="p-3.5 flex items-center space-x-3">
+            <img src="${p.image}" class="w-9 h-9 object-cover rounded bg-neutral-800">
+            <div>
+              <span class="font-bold text-white text-xs uppercase block">${p.name}</span>
+              <span class="text-[10px] text-neutral-500 uppercase">${p.category || 'Garment'}</span>
+            </div>
+          </td>
+          <td class="p-3.5 text-neutral-300">R ${p.price.toFixed(2)}</td>
+          <td class="p-3.5">
+            <div class="flex items-center space-x-2">
+              <input type="number" min="0" value="${p.stock}" onchange="updateStockDirect('${p.id}', this.value)" class="w-16 bg-neutral-800 border border-neutral-700 text-center rounded p-1 text-xs text-white font-bold">
+              ${p.stock <= 3 && p.stock > 0 ? '<span class="text-[10px] text-red-400 font-bold">LOW</span>' : ''}
+              ${p.stock === 0 ? '<span class="text-[10px] text-neutral-500 font-bold">OUT</span>' : ''}
+            </div>
+          </td>
+          <td class="p-3.5 text-right">
+            <button onclick="removeProduct('${p.id}')" class="text-red-400 hover:text-red-300 text-xs font-bold uppercase">Delete</button>
+          </td>
+        `;
+        list.appendChild(tr);
+      });
+
+      // Inbox List
+      const inboxList = document.getElementById('admin-inbox-list');
+      inboxList.innerHTML = '';
+      if (contactMessages.length === 0) {
+        inboxList.innerHTML = '<p class="text-neutral-500">No messages in inbox.</p>';
+      } else {
+        contactMessages.forEach(m => {
+          const div = document.createElement('div');
+          div.className = 'bg-neutral-950 p-3 rounded border border-neutral-800 space-y-1';
+          div.innerHTML = `
+            <div class="flex justify-between items-center text-neutral-400">
+              <span class="font-bold text-white">${m.name} (${m.email})</span>
+              <span class="text-[10px]">${m.date}</span>
+            </div>
+            ${m.phone ? `<p class="text-neutral-400">Phone: ${m.phone}</p>` : ''}
+            <p class="text-neutral-300 mt-1">${m.comment}</p>
+          `;
+          inboxList.appendChild(div);
+        });
+      }
+
+      const emailList = document.getElementById('admin-email-list');
+      const emailCount = document.getElementById('email-signup-count');
+      emailCount.textContent = emailSignups.length;
+      emailList.replaceChildren();
+      if (emailSignups.length === 0) {
+        const emptyState = document.createElement('p');
+        emptyState.className = 'text-neutral-500';
+        emptyState.textContent = 'No email signups yet.';
+        emailList.appendChild(emptyState);
+      } else {
+        emailSignups.forEach(signup => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between gap-3 border-b border-neutral-800 pb-2';
+
+          const email = document.createElement('span');
+          email.className = 'break-all font-medium text-white';
+          email.textContent = signup.email;
+
+          const date = document.createElement('span');
+          date.className = 'shrink-0 text-[10px] text-neutral-500';
+          date.textContent = signup.date;
+
+          row.append(email, date);
+          emailList.appendChild(row);
+        });
+      }
+
+      // Sales Log
+      const salesLog = document.getElementById('sales-log');
+      salesLog.innerHTML = '';
+      if (salesHistory.length === 0) {
+        salesLog.innerHTML = '<p class="text-neutral-500">No transactions recorded yet.</p>';
+      } else {
+        salesHistory.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'flex justify-between items-center bg-neutral-950 p-2.5 rounded border border-neutral-800/60';
+          div.innerHTML = `
+            <div>
+              <span class="font-bold text-white">${s.qty}x ${s.productName}</span>
+              <span class="text-neutral-500 block text-[10px]">${s.date}</span>
+            </div>
+            <span class="font-extrabold text-emerald-400">+R ${s.amount.toFixed(2)}</span>
+          `;
+          salesLog.appendChild(div);
+        });
+      }
+    }
+
+    function formatAdminPrice(input) {
+      if (!input.value) return;
+      const price = Number(input.value);
+      if (Number.isFinite(price)) input.value = price.toFixed(2);
+    }
+
+    function handleAddProduct(e) {
+      e.preventDefault();
+      const name = document.getElementById('admin-name').value.trim();
+      const category = document.getElementById('admin-category').value;
+      const price = parseFloat(document.getElementById('admin-price').value);
+      const stock = parseInt(document.getElementById('admin-stock').value, 10);
+      const image = document.getElementById('admin-image').value.trim();
+
+      if (!name || isNaN(price) || isNaN(stock) || !image) return;
+
+      const newProduct = {
+        id: 'p_' + Date.now(),
+        name,
+        category,
+        price,
+        stock,
+        image
+      };
+
+      products.unshift(newProduct);
+      saveState();
+      renderAdminDashboard();
+      renderStorefront();
+
+      document.getElementById('add-product-form').reset();
+      alert(`Published ${name} in ${category} with ${stock} items in stock!`);
+    }
+
+    function updateStockDirect(id, newStockVal) {
+      const val = parseInt(newStockVal, 10);
+      if (isNaN(val) || val < 0) return;
+      
+      const product = products.find(p => p.id === id);
+      if (product) {
+        product.stock = val;
+        saveState();
+        renderStorefront();
+        renderAdminDashboard();
+      }
+    }
+
+    function removeProduct(id) {
+      if (!confirm('Are you sure you want to remove this garment from catalog?')) return;
+      products = products.filter(p => p.id !== id);
+      cart.delete(id);
+      saveState();
+      renderStorefront();
+      renderAdminDashboard();
+      updateCartUI();
+    }
+
+    function toggleSearch() {
+      const searchBar = document.getElementById('search-bar');
+      searchBar.classList.toggle('hidden');
+      if (!searchBar.classList.contains('hidden')) {
+        document.getElementById('search-input').focus();
+      }
+    }
+
+    function handleSearch() {
+      renderStorefront();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).close();
+    }
+  </script>
+</body>
+</html>
